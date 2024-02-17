@@ -1,12 +1,9 @@
+#include "base_inc.h"
 #include "raylib.h"
 #include "raymath.h"
-
 #include "shaders.h"
 
-extern "C" {
-    #include "base_inc.h"
-    #include "base_inc.c"
-}
+#include "base_inc.c"
 
 #define CAMERA_MOUSE_MOVE_SENSITIVITY                   0.03f     
 #define CAMERA_MOVE_SPEED                               0.09f
@@ -18,7 +15,6 @@ global Mesh global_DEBUG_block_mesh;
 global Material global_DEBUG_block_material;
 global Model global_DEBUG_block_model;
 
-// Church
 global Model church;
 global Texture2D churchTexture;
 global RenderTexture2D target;
@@ -30,6 +26,8 @@ const int screen_height = 450;
 */
 internal void init() {
     InitWindow(screen_width, screen_height, "AlgoCraft3D");
+    SetTargetFPS(60);
+    DisableCursor(); // NOTE(cabarger): Also locks the cursor.
     InitShaders();
     
     // Test church model
@@ -75,7 +73,7 @@ internal void update(F32 dt) {
 
 }
 
-#define SAM_DRAW 1
+#define SAM_DRAW 0
 #if SAM_DRAW 
 internal void draw() {
     BeginTextureMode(target);  
@@ -113,9 +111,6 @@ internal void draw() {
 
 int main(void) {
     init();
-    SetTargetFPS(60);
-    DisableCursor();                // Limit cursor to relative movement inside the window
-
     while (!WindowShouldClose()) {
         update(GetFrameTime());
         draw();
