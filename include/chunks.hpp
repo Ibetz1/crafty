@@ -9,6 +9,7 @@
 
 extern "C" {
     #include "base_types.h"
+#include "raylib.h"
 }
 
 #define CHUNK_W 16
@@ -38,11 +39,11 @@ struct Block {
 */
 struct Chunk {
     static const U64 width_blocks_x = CHUNK_W;
-    static const U64 width_blocks_y = CHUNK_W;
-    static const U64 width_blocks_z = CHUNK_H;
+    static const U64 width_blocks_y = CHUNK_H;
+    static const U64 width_blocks_z = CHUNK_W;
 
     U64 x_cor; // x coord in chunk space
-    U64 y_cor; // y coord in chunk space
+    U64 z_cor; // y coord in chunk space
     Block* base_ptr; // ptr to bottom left block
 
     static Block* block_at(Chunk* space, U64 x, U64 y, U64 z);
@@ -55,12 +56,12 @@ struct World {
     
     // block dimensions
     static const U64 block_width_x = WORLD_W_B;
-    static const U64 block_width_y = WORLD_W_B;
-    static const U64 block_width_z = CHUNK_H;
+    static const U64 block_width_y = CHUNK_H;
+    static const U64 block_width_z = WORLD_W_B;
 
     // chunk dimensions
     static const U64 chunk_width_x = WORLD_W_C;
-    static const U64 chunk_width_y = WORLD_W_C;
+    static const U64 chunk_width_z = WORLD_W_C;
 
     // world volumes
     static const U64 block_volume = WORLD_W_B * WORLD_W_B * CHUNK_H;
@@ -81,15 +82,15 @@ struct World {
 
     /*
         returns a chunk that a block is inside of
-        x, y are in world coordinates
+        x, z are in world coordinates
     */
-    static Chunk  chunk_at_block_cor(World* world, U64 x, U64 y);
+    static Chunk  chunk_at_block_cor(World* world, U64 x, U64 z);
     
     /*
         returns a chunk
-        x, y are in chunk coordinates
+        x, z are in chunk coordinates
     */
-    static Chunk  chunk_at_chunk_cor(World* world, U64 x, U64 y);
+    static Chunk  chunk_at_chunk_cor(World* world, U64 x, U64 z);
 
     // pointer to beginning of world blocks
     Block* base_ptr;

@@ -1,14 +1,17 @@
-#include "base_inc.h"
 #include "raylib.h"
 #include "raymath.h"
 #include "shaders.h"
 #include "chunks.hpp"
 
-#include "base_inc.c"
+extern "C" {
+    #include "base_inc.h"
+    #include "base_inc.c"
+}
 
-#define CAMERA_MOUSE_MOVE_SENSITIVITY                   0.03f     
-#define CAMERA_MOVE_SPEED                               0.09f
-#define CAMERA_ROTATION_SPEED                           0.03f
+
+#define CAMERA_MOUSE_MOVE_SENSITIVITY 0.03f
+#define CAMERA_MOVE_SPEED             0.09f
+#define CAMERA_ROTATION_SPEED         0.03f
 
 global World global_world;
 
@@ -60,10 +63,10 @@ internal void init() {
     for (U8 block_x=0; block_x < CHUNK_W; ++block_x) {
         for (U8 block_y=0; block_y < CHUNK_W; ++block_y) {
             for (U8 block_z=0; block_z < CHUNK_H; ++block_z) {
-                if (block_z == 10) {
-                    Block* block_p = 
-                        Chunk::block_at(&chunk, block_x, block_y, block_z);
-                    Block::set_value(block_p, 1);
+                if (block_z == 10 || block_z == 11 || block_z == 12) {
+                    // Block* block_p = 
+                        // Chunk::block_at(&chunk, block_x, block_y, block_z);
+                    // Block::set_value(block_p, 1);
                 }
             }
         }
