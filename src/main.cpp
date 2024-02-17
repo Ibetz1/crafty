@@ -53,6 +53,21 @@ internal void init() {
 
     //- cabarger: Init world
     global_world = world::alloc_chunks();
+    
+    //- cabarger: Test fill blocks from Ian's code
+    chunk origin_chunk = world::chunk_at_chunk_cor(&global_world, 0, 0);
+    
+        for (U8 block_z=0; block_z < CHUNK_H; ++block_z) {
+            for (U8 block_y=0; block_y < CHUNK_W; ++block_y) {
+                for (U8 block_x=0; block_x < CHUNK_W; ++block_x) {
+                if (block_z == 10) {
+                    block* block_p = 
+                        chunk::block_at(&origin_chunk, block_x, block_y, block_z);
+                    block::set_value(block_p, 1);
+                }
+            }
+        }
+    }
 }
 
 /*

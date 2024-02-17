@@ -22,7 +22,6 @@ internal void draw() {
                         1.0f, // Scale
                         BLUE // Tint
                     ); 
-    
 #else 
                     DrawModelWires(
                         global_DEBUG_block_model, 
@@ -39,12 +38,19 @@ internal void draw() {
 
     //- cabarger: Test draw chunk from Ian's code
     Chunk chunk = world::chunk_at_chunk_cor(&global_world, 0, 0);
-
     
     for (U8 block_x=0; block_x < CHUNK_W; ++block_x) {
         for (U8 block_y=0; block_y < CHUNK_W; ++block_y) {
             for (U8 block_z=0; block_z < CHUNK_H; ++block_z) {
-                Chunk::block_at(&chunk, )
+                Block* block = Chunk::block_at(&chunk, block_x, block_y, block_z);
+                if (block->tex == 1) {
+                    DrawModel(
+                        global_DEBUG_block_model, 
+                        (Vector3){.x = (F32)(block_x), .y = (F32)(block_y) , .z = (F32)(block_z) },  // Pos
+                        1.0f, // Scale
+                        BLUE // Tint
+                    ); 
+                }
             }
         }
     }
