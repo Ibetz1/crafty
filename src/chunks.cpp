@@ -1,11 +1,6 @@
-/*
-    - define a maximum width of chunk rendering 
-    (render distance containing radius of loaded chunks) (2*r = w) 
-    
-    - allocate enough memory for w^2 chunks such that the chunks can be unloaded/loaded
-    into a fixed buffer
-
-*/
+//! date: 2/17/24
+//! chunks.cpp by Ian Betz
+//! created to manage world data
 
 extern "C" {
     #include "base_inc.h"
@@ -16,83 +11,75 @@ extern "C" {
 #include <math.h>
 #include "chunks.hpp"
 
-
-
-// compute size of chunks
-inline U64 compute_chunk_size_bytes(U8 maxh, U8 maxw) {
-    return maxw * maxw * maxh * sizeof(block);
+template <typename T>
+T clamp(T val, T min, T max) {
+    return (T) fmin(fmax(val, min), max);
 }
 
-// allocate chunks with the render distance as the radius
-block* alloc_world_arena(U64 render_distance) {
-
-    /*
-        add 1 for center chunk
-    */
-    U64 chunk_count = pow((render_distance * 2), 2);
-
-    U64 chunk_size_bytes = compute_chunk_size_bytes(CHUNK_H, CHUNK_W);
-
-    return (block*) calloc(chunk_count, chunk_size_bytes);
+/*
+    compute 1D coords from 3D based on chunk dimensions
+*/
+inline U64 compute_index_3D(U64 x, U64 y, U64 z, U64 w, U64 h, U64 d) {
+    return clamp<U64>((x + (w) * (y + h * z)) - 1, 0, (w * h * d) - 1);
 }
 
-block* get_block(block* world, U64 x, U64 y, U64 z, U64 render_distance) {
+/*
+    world operations
+*/
 
-    /*
-        bind coords to world
-    */
-    U64 world_width = render_distance * CHUNK_W;
-    x = fmin(fmax(x, 0), world_width - 1);
-    y = fmin(fmax(y, 0), world_width - 1);
-    z = fmin(fmax(z, 0), CHUNK_H - 1);
-
-    /*
-        map x, y, z to linear coordinates
-    */
-    U64 index = x + (CHUNK_W) * (y + CHUNK_W * z);
-
-    return world + index;
+// allocate a block of memory for every single block in the world
+world world::alloc_chunks() {
+    return (world) {
+        .base_ptr  = (block*) calloc(chunk_area, allocated_bytes),
+    };
 }
 
-void test() {
-    block* blocks = alloc_world_arena(1);
+// get block in world coords
+block* world::block_at(world* world, U64 x, U64 y, U64 z) {
+    x = clamp<F64>(x, 0, WORLD_W_B);
+    y = clamp<F64>(y, 0, WORLD_W_B);
+    z = clamp<F64>(z, 0, CHUNK_H);
 
-    block* b;
-    for (U64 x = 0; x < CHUNK_W; x++) {
-        for (U64 y = 0; y < CHUNK_W; y++) {
-            for (U64 z = 0; z < CHUNK_H; z++) {
-                b = get_block(blocks, x, y, z, 1);
-                b->tex = x;
-            }
-            printf("%i ", b->tex);
-        }
-        printf("\n");
-    }
+    U64 index = compute_index_3D(x, y, z, block_width_x, block_width_y, block_width_z);
 
-
-    // int w = 16;
-    // int h = 16;
-
-    // int* base_ptr = (int*) calloc(w * h, sizeof(int));
-
-    // // index = width * col + row;
-    // for (int row = 0; row < h; row++) {
-    //     for (int col = 0; col < w; col++) {
-    //         int index = w * col + row;
-    //         *(base_ptr + index) = index;
-    //     }
-    // }
-
-    // for (int row = 0; row < h; row++) {
-    //     for (int col = 0; col < w; col++) {
-    //         int index = w * col + row;
-    //         int v = *(base_ptr + index);
-
-    //         printf("%i %i\n", index, v);
-    //     }
-    // }
-
+    return world->base_ptr + index;
 }
 
-// 2d array map:
-// index = width * rol + col
+// get a chunk from some world coordinates
+chunk world::chunk_at_block_cor(world* world, U64 x, U64 y) {
+    U64 xnorm = floor((clamp<F64>(x, 0, block_width_x) / CHUNK_W)) * CHUNK_W;
+    U64 ynorm = floor((clamp<F64>(y, 0, block_width_y) / CHUNK_W)) * CHUNK_W;
+
+    U64 index = compute_index_3D(xnorm, ynorm, 0, block_width_x, block_width_y, block_width_z);
+
+    return (chunk) {
+        .base_ptr = world->base_ptr + index,
+    };
+}
+
+// get chunk from chunk space coords
+chunk world::chunk_at_chunk_cor(world* world, U64 x, U64 y) {
+    x = clamp<U64>(x, 0, chunk_width_x) * chunk::width_blocks_x;
+    y = clamp<U64>(y, 0, chunk_width_y) * chunk::width_blocks_y;
+
+    U64 index = compute_index_3D(x, y, block_width_z, block_width_x, block_width_y, block_width_z);
+
+    return (chunk) {
+        .base_ptr = world->base_ptr + index,
+    };
+}
+
+/*
+    chunk operations
+*/
+
+// get a pointer to a block inside of a chunk
+block* chunk::block_at(chunk* space, U64 x, U64 y, U64 z) {
+    x = clamp<U64>(x, 0, width_blocks_x);
+    y = clamp<U64>(y, 0, width_blocks_y);
+    z = clamp<U64>(z, 0, width_blocks_z);
+
+    U64 index = compute_index_3D(x, y, z, width_blocks_x, width_blocks_y, width_blocks_z);
+
+    return space->base_ptr + index;
+}
