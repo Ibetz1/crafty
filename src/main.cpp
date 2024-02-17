@@ -11,7 +11,7 @@ void init() {
     pre-render pass
 */
 void update(float dt) {
-
+    
 }
 
 /*
@@ -22,7 +22,7 @@ void draw() {
 }
 
 int main(void) {
-`   init();
+    init();
 
     const int screenWidth = 800;
     const int screenHeight = 450;
@@ -30,6 +30,7 @@ int main(void) {
     InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
     SetTargetFPS(60);
     init();
+
     while (!WindowShouldClose()) {
         update(GetFrameTime());
         BeginDrawing();
@@ -37,6 +38,7 @@ int main(void) {
             draw();
         EndDrawing();
     }
+    
     CloseWindow();
 
     return 0;
