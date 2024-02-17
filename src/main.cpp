@@ -17,6 +17,7 @@ global Camera global_camera = { 0 };
 global Mesh global_DEBUG_block_mesh; 
 global Material global_DEBUG_block_material;
 global Model global_DEBUG_block_model;
+
 // Church
 global Model church;
 global Texture2D churchTexture;
@@ -74,45 +75,41 @@ internal void update(F32 dt) {
 
 }
 
-/*
-    render pass
-*/
+#define SAM_DRAW 1
+#if SAM_DRAW 
 internal void draw() {
-
     BeginTextureMode(target);  
-        ClearBackground(RAYWHITE);
+    ClearBackground(RAYWHITE);
 
-        BeginMode3D(global_camera);
-        // Church
-            DrawModel(church, { 0.0f, 0.0f, 0.0f }, 0.1f, WHITE);   // Draw 3d model with texture
-            DrawGrid(10, 1.0f);     // Draw a grid
+    BeginMode3D(global_camera);
 
-        EndMode3D();
+    // Church
+    DrawModel(church, { 0.0f, 0.0f, 0.0f }, 0.1f, WHITE);   // Draw 3d model with texture
+    DrawGrid(10, 1.0f); 
+
+    EndMode3D();
     EndTextureMode();
 
     BeginDrawing();
-        ClearBackground(RAYWHITE);
+    ClearBackground(RAYWHITE);
 
-        BeginShaders();
-            DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2){ 0, 0 }, WHITE);
-    // DrawModel(
-    //     global_DEBUG_block_model, 
-    //     (Vector3){.x = 0.0f, .y = 0.0f, .z = 0.0f},  // Pos
-    //     1.0f, // Scale
-    //     WHITE // Tint
-    // ); 
-        EndShaders();
+    BeginShaders();
+        DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2){ 0, 0 }, WHITE);
+    EndShaders();
 
-        // DRAW TEXT over 2d shapes and drawn texture
-        DrawRectangle(0, 9, 580, 30, Fade(LIGHTGRAY, 0.7f));
-        
-        DrawText("(c) Church 3D model by Alberto Cano", screen_width - 200, screen_height - 20, 10, GRAY);
-        DrawText("CURRENT POSTPRO SHADER:", 10, 15, 20, BLACK);
-        DrawText(postproShaderText[getCurrentShader()], 330, 15, 20, RED);
-        DrawText("< >", 540, 10, 30, DARKBLUE);
-        
+    // DRAW TEXT over 2d shapes and drawn texture
+    DrawRectangle(0, 9, 580, 30, Fade(LIGHTGRAY, 0.7f));
+    
+    DrawText("(c) Church 3D model by Alberto Cano", screen_width - 200, screen_height - 20, 10, GRAY);
+    DrawText("CURRENT POSTPRO SHADER:", 10, 15, 20, BLACK);
+    DrawText(postproShaderText[getCurrentShader()], 330, 15, 20, RED);
+    DrawText("< >", 540, 10, 30, DARKBLUE);
+    
     EndDrawing();
 }
+#else
+#include "render.cpp"
+#endif
 
 int main(void) {
     init();
