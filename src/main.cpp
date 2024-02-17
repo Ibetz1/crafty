@@ -2,12 +2,15 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "shaders.h"
+#include "chunks.hpp"
 
 #include "base_inc.c"
 
 #define CAMERA_MOUSE_MOVE_SENSITIVITY                   0.03f     
 #define CAMERA_MOVE_SPEED                               0.09f
 #define CAMERA_ROTATION_SPEED                           0.03f
+
+global world global_world;
 
 global Camera global_camera = { 0 };
 
@@ -47,6 +50,9 @@ internal void init() {
     global_camera.fovy = 45.0f;                             // Field-of-view Y
     global_camera.projection = CAMERA_PERSPECTIVE;          // Projection type
     Vector3 position = { 0.0f, 0.0f, 0.0f };                // Set model position
+
+    //- cabarger: Init world
+    global_world = world::alloc_chunks();
 }
 
 /*
