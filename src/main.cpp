@@ -1,8 +1,5 @@
 #include "raylib.h"
-
-void test() {
-
-}
+#include "test.hpp"
 
 //------------------------------------------------------------------------------------
 // Program main entry point

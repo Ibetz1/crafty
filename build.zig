@@ -22,6 +22,7 @@ pub fn build(b: *std.Build) !void {
     exe.addCSourceFiles(&.{"src/main.cpp"}, &.{});
     exe.linkLibCpp();
     exe.addIncludePath(.{ .path = src_dir ++ "/raylib/src" });
+    exe.addIncludePath(.{ .path = src_dir ++ "/include" });
     exe.linkLibrary(raylib);
 
     // This declares intent for the executable to be installed into the
