@@ -6,6 +6,10 @@ extern "C" {
     #include "base_inc.c"
 }
 
+#define CAMERA_MOUSE_MOVE_SENSITIVITY                   0.03f     
+#define CAMERA_MOVE_SPEED                               0.09f
+#define CAMERA_ROTATION_SPEED                           0.03f
+
 global Camera global_camera = { 0 };
 
 global Mesh global_DEBUG_block_mesh; 
@@ -37,7 +41,22 @@ internal void init() {
     pre-render pass
 */
 internal void update(F32 dt) {
-    UpdateCamera(&global_camera, CAMERA_FIRST_PERSON);
+    Vector2 mouse_pos_delta = GetMouseDelta();
+    Vector3 movement_this_frame = Vector3Zero();
+    Vector3 rotation_this_frame = Vector3{
+        .x = mouse_pos_delta.x * CAMERA_MOUSE_MOVE_SENSITIVITY,
+        .y = mouse_pos_delta.y * CAMERA_MOUSE_MOVE_SENSITIVITY,
+        .z = 0.0f
+    };
+
+    if (IsKeyDown(KEY_W)) movement_this_frame.x += CAMERA_MOVE_SPEED; // Forward
+    if (IsKeyDown(KEY_S)) movement_this_frame.x += -CAMERA_MOVE_SPEED; // Backward
+    if (IsKeyDown(KEY_A)) movement_this_frame.y += -CAMERA_MOVE_SPEED; // Left
+    if (IsKeyDown(KEY_D)) movement_this_frame.y += CAMERA_MOVE_SPEED; // Right
+    if (IsKeyDown(KEY_SPACE)) movement_this_frame.z += CAMERA_MOVE_SPEED; // Up
+    if (IsKeyDown(KEY_LEFT_CONTROL)) movement_this_frame.z += -CAMERA_MOVE_SPEED; // Down 
+   
+    UpdateCameraPro(&global_camera,  movement_this_frame, rotation_this_frame, 0.0f);
 }
 
 /*
@@ -57,12 +76,10 @@ internal void draw() {
     ); 
 
     EndMode3D();
-   EndDrawing();
+    EndDrawing();
 }
 
 int main(void) {
-
-
     init();
     SetTargetFPS(60);
     DisableCursor();                // Limit cursor to relative movement inside the window
