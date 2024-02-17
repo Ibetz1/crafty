@@ -1,5 +1,25 @@
 #include "raylib.h"
-#include "test.hpp"
+
+/*
+    on runtime
+*/
+void init() {
+
+}
+
+/*
+    pre-render pass
+*/
+void update(double dt) {
+
+}
+
+/*
+    render pass
+*/
+void draw() {
+
+}
 
 //------------------------------------------------------------------------------------
 // Program main entry point
