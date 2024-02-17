@@ -23,32 +23,35 @@ extern "C" {
 /*
     contains block data
 */
-struct block {
+struct Block {
     U8 tex = 0;
 
     // set block texture
-    static void set_value(block* block, U8 tex);
+    static void set_value(Block* block, U8 tex);
+
+    // get block texture
+    static U8 get_value(Block* block);
 };
 
 /*
     contains chunk data
 */
-struct chunk {
+struct Chunk {
     static const U64 width_blocks_x = CHUNK_W;
     static const U64 width_blocks_y = CHUNK_W;
     static const U64 width_blocks_z = CHUNK_H;
 
     U64 x_cor; // x coord in chunk space
     U64 y_cor; // y coord in chunk space
-    block* base_ptr; // ptr to bottom left block
+    Block* base_ptr; // ptr to bottom left block
 
-    static block* block_at(chunk* space, U64 x, U64 y, U64 z);
+    static Block* block_at(Chunk* space, U64 x, U64 y, U64 z);
 };
 
 /*
     contains world data
 */
-struct world {
+struct World {
     
     // block dimensions
     static const U64 block_width_x = WORLD_W_B;
@@ -65,31 +68,31 @@ struct world {
     static const U64 block_area   = WORLD_W_B * WORLD_W_B;
 
     // allocation data
-    static const U64 allocated_bytes = block_volume * sizeof(block); 
+    static const U64 allocated_bytes = block_volume * sizeof(Block); 
 
     // generate empty world chunks
-    static world alloc_chunks();
+    static World alloc_chunks();
 
     /*
         returns a pointer to a block at some block coorinates
         x, y, z are in world coordinates
     */
-    static block* block_at(world* world, U64 x, U64 y, U64 z);
+    static Block* block_at(World* world, U64 x, U64 y, U64 z);
 
     /*
         returns a chunk that a block is inside of
         x, y are in world coordinates
     */
-    static chunk  chunk_at_block_cor(world* world, U64 x, U64 y);
+    static Chunk  chunk_at_block_cor(World* world, U64 x, U64 y);
     
     /*
         returns a chunk
         x, y are in chunk coordinates
     */
-    static chunk  chunk_at_chunk_cor(world* world, U64 x, U64 y);
+    static Chunk  chunk_at_chunk_cor(World* world, U64 x, U64 y);
 
     // pointer to beginning of world blocks
-    block* base_ptr;
+    Block* base_ptr;
 };
 
 
