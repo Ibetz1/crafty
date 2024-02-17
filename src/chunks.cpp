@@ -83,3 +83,10 @@ block* chunk::block_at(chunk* space, U64 x, U64 y, U64 z) {
 
     return space->base_ptr + index;
 }
+
+/*
+    block operations
+*/
+void block::set_value(block* blk, U8 val) {
+    blk->tex = val;
+}

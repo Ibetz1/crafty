@@ -25,6 +25,9 @@ extern "C" {
 */
 struct block {
     U8 tex = 0;
+
+    // set block texture
+    static void set_value(block* block, U8 tex);
 };
 
 /*
@@ -37,7 +40,7 @@ struct chunk {
 
     U64 x_cor; // x coord in chunk space
     U64 y_cor; // y coord in chunk space
-    block* base_ptr; // ptr to top left block
+    block* base_ptr; // ptr to bottom left block
 
     static block* block_at(chunk* space, U64 x, U64 y, U64 z);
 };
