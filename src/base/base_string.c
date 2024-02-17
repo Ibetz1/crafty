@@ -11,7 +11,7 @@
 
 internal String8 str8_cat(Arena* arena, String8 a, String8 b) {
   String8 result;
-  result.str = arena_push(arena, a.len + b.len);
+  result.str = (U8*)arena_push(arena, a.len + b.len);
   result.len = 0;
 
   for (U64 a_index=0; a_index < a.len; ++a_index)
@@ -44,7 +44,7 @@ internal String8 str8_sub(String8 str, U64 start, U64 end) {
 
 internal String8 str8_copy(Arena* arena, String8 source) {
   String8 dest = {
-    .str = (U8*)arena_alloc(arena, source.len),
+    .str = (U8*)arena_push(arena, source.len),
     .len = source.len,
   };
   for (U64 source_index=0; source_index < source.len; ++source_index)
@@ -54,7 +54,7 @@ internal String8 str8_copy(Arena* arena, String8 source) {
 
 internal String8 str8_copyz(Arena* arena, String8 source) {
   String8 dest = {
-    .str = (U8*)arena_alloc(arena, source.len + 1),
+    .str = (U8*)arena_push(arena, source.len + 1),
     .len = source.len + 1,
   };
   for (U64 source_index=0; source_index < source.len;)

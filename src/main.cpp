@@ -1,5 +1,10 @@
 #include "raylib.h"
 
+extern "C" {
+    #include "base_inc.h"
+    #include "base_inc.c"
+}
+
 /*
     on runtime
 */
@@ -7,7 +12,6 @@ void init() {
 
 }
 
-<<<<<<< HEAD
 /*
     pre-render pass
 */
@@ -25,17 +29,6 @@ void draw() {
 int main(void) {
     init();
 
-=======
-// Test co
-
-//------------------------------------------------------------------------------------
-// Program main entry point
-//------------------------------------------------------------------------------------
-int main(void)
-{
-    // Initialization
-    //--------------------------------------------------------------------------------------
->>>>>>> 502bbe3 (test co)
     const int screenWidth = 800;
     const int screenHeight = 450;
 

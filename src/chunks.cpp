@@ -6,3 +6,8 @@
     into a fixed buffer
 
  */
+
+extern "C" {
+    #include "base_inc.h"
+    #include "base_inc.c"
+}
