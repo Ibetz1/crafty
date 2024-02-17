@@ -10,7 +10,7 @@
 #define CAMERA_MOVE_SPEED                               0.09f
 #define CAMERA_ROTATION_SPEED                           0.03f
 
-global world global_world;
+global World global_world;
 
 global Camera global_camera = { 0 };
 
@@ -52,18 +52,18 @@ internal void init() {
     Vector3 position = { 0.0f, 0.0f, 0.0f };                // Set model position
 
     //- cabarger: Init world
-    global_world = world::alloc_chunks();
+    global_world = World::alloc_chunks();
     
     //- cabarger: Test fill blocks from Ian's code
-    chunk origin_chunk = world::chunk_at_chunk_cor(&global_world, 0, 0);
+    Chunk chunk = World::chunk_at_chunk_cor(&global_world, 0, 0);
     
-        for (U8 block_z=0; block_z < CHUNK_H; ++block_z) {
-            for (U8 block_y=0; block_y < CHUNK_W; ++block_y) {
-                for (U8 block_x=0; block_x < CHUNK_W; ++block_x) {
+    for (U8 block_x=0; block_x < CHUNK_W; ++block_x) {
+        for (U8 block_y=0; block_y < CHUNK_W; ++block_y) {
+            for (U8 block_z=0; block_z < CHUNK_H; ++block_z) {
                 if (block_z == 10) {
-                    block* block_p = 
-                        chunk::block_at(&origin_chunk, block_x, block_y, block_z);
-                    block::set_value(block_p, 1);
+                    Block* block_p = 
+                        Chunk::block_at(&chunk, block_x, block_y, block_z);
+                    Block::set_value(block_p, 1);
                 }
             }
         }
