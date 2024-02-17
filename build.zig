@@ -20,6 +20,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
     exe.addCSourceFiles(&.{"src/main.cpp"}, &.{});
+    exe.addCSourceFiles(&.{"src/chunks.cpp"}, &.{});
     exe.linkLibCpp();
     exe.linkLibC();
     exe.addIncludePath(.{ .path = src_dir ++ "/raylib/src" });
