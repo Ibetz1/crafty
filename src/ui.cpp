@@ -2,12 +2,7 @@
 #include <vector>
 
 std::vector <Button> buttons;
-
 int highlighted = 0;
-
-bool drawRect = false;
-bool drawRoundedRect = true;
-bool drawRoundedLines = false;
 
 void create_button(int x, int y, int width, int height)
 {
