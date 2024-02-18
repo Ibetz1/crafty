@@ -76,9 +76,9 @@ static void update(F32 dt) {
 }
 
 static void draw() {
-    draw_chunk_render();
-
     DrawGrid(100, 1);
+
+    draw_chunk_render();
 }
 
 int main(void) {
