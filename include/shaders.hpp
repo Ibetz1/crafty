@@ -1,13 +1,10 @@
 #ifndef _SHADERS_HPP
 #define _SHADERS_HPP
 
-//#include "rlights.h"
 #include "raylib.h"
 #include "raymath.h"
 #include <stdlib.h>
 
-//define RLIGHTS_IMPLEMENTATION
-//#define RLIGHTS_H
 #include "rlights.h"
 
 #define MAX_INSTANCES  10000
@@ -18,23 +15,29 @@
     #define GLSL_VERSION            100
 #endif
 
-#define MAX_POSTPRO_SHADERS         14
-#define MAX_LIGHTS  1
+#define MAX_POSTPRO_SHADERS         7
+#define MAX_LIGHT  10
 
-void init_light(Vector3 position, Vector3 target, Color color);
+void create_light(int type, Vector3 position, Vector3 target, Color color);
 void init_shaders();
-void update_shaders();
+
+void update_shaders(Camera*camera);
 
 void draw_lights();
+void draw_shaders();
+
 void begin_shaders();
 void end_shaders();
 void deload_shaders();
 
-Shader get_current_shader();
+void draw_current_shader(int screen_width, int screen_height);
+
 Shader get_shader(int i);
+Shader get_current_shader();
 Shader get_lighting_shader();
 int get_shader_index();
 
+void test_mesh_shaders();
 
 
 typedef enum {
