@@ -37,8 +37,6 @@ Shader get_current_shader();
 Shader get_lighting_shader();
 int get_shader_index();
 
-void test_mesh_shaders();
-
 
 typedef enum {
     FX_BASE = 0,
