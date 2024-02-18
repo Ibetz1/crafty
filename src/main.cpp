@@ -20,7 +20,7 @@ static Camera global_camera = { 0 };
 static Rectangle global_camera_hitbox = { 0 };
 
 static GameState game_state;
-global Font my_font;
+static Font comic_mono_font;
 
 static S32 global_screen_width = 800;
 static S32 global_screen_height = 450;
@@ -51,7 +51,7 @@ static void crafty_init() {
     create_light(LIGHT_DIRECTIONAL, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
     // ------- Lighting ---------
     create_ui(global_screen_width, global_screen_height);
-    my_font = LoadFont("resources/ComicMono-Bold.ttf");
+    comic_mono_font = LoadFont("resources/ComicMono-Bold.ttf");
     init_chunk_render();
 }
 
@@ -126,11 +126,10 @@ static void crafty_draw() {
             draw_hotbar(global_screen_width, global_screen_height);
         } break;
         case GAME_PAUSED: {
-            Font my_font = LoadFont("resources/ComicMono-Bold.ttf");
-            const char* str = "Press 1 to exit, 2 to leave";
+            const char* str = "Press 1 to exit game, 2 to exit this menu.";
             Vector2 vec = {global_screen_width/2.0f - MeasureText(str, 30)/2.0f, global_screen_height/2.0f};
 
-            DrawTextEx(my_font, str, vec, 30, 1, RED);
+            DrawTextEx(comic_mono_font, str, vec, 30, 1, RED);
             if (IsKeyPressed(KEY_ONE)) {
                 exit(EXIT_SUCCESS);
             }
