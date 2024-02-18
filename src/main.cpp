@@ -28,7 +28,6 @@ static World global_world;
 static Camera global_camera = { 0 };
 
 global GameState game_state;
-int game_paused = 0;
 
 const int screen_width = 800;
 const int screen_height = 450;
@@ -84,11 +83,15 @@ static void update_camera_and_movement() {
 static void update(F32 dt) {
     if(IsKeyPressed(KEY_P)) 
     {
-        game_paused = !game_paused;
-        if (game_paused == 1) game_state = GAME_PAUSED;
-        else {
+        if (game_state == GAME_RUNNING)
+            game_state = GAME_PAUSED;
+        else if(game_state == GAME_PAUSED)
             game_state = GAME_RUNNING;
-        }
+        // game_paused = !game_paused;
+        // if (game_paused == 1) game_state = GAME_PAUSED;
+        // else {
+        //     game_state = GAME_RUNNING;
+        // }
     }
     switch(game_state) {
         case GAME_RUNNING:

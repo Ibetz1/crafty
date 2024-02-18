@@ -67,19 +67,18 @@ void update_hotbar(int screen_width, int screen_height)
 
 }
 
-// void draw_items(ItemBlock block)
-// {
-	
-// }
+void draw_items(ItemBlock block)
+{
+	// ADD STUFF HERE
+	DrawCube({0,0,0}, buttons[highlighted].width/1.2f, buttons[highlighted].width/1.2f, buttons[highlighted].width/1.2f, BLACK);
+}
 
-void draw_hotbar(int screen_width, int screen_height, ItemBlock block)
+void draw_hotbar(int screen_width, int screen_height)
 {	
 	int i = 0;
 	for (const Button& button : buttons)
 	{
 		DrawRectangle(button.x, button.y, button.width, button.height, Fade(LIGHTGRAY, 0.3f));
-		// ADD STUFF HERE
-		DrawCube({0,0,0}, button.width/1.2f, button.width/1.2f, button.width/1.2f, BLACK);
 
 		if (i == highlighted)
 		{
