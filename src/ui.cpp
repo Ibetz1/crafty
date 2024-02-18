@@ -4,7 +4,6 @@
 std::vector <Button> buttons;
 
 int highlighted = 0;
-int gamePaused = 0;
 
 bool drawRect = false;
 bool drawRoundedRect = true;
