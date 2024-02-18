@@ -52,7 +52,6 @@ static void crafty_init() {
     // ------- Lighting ---------
     create_ui(global_screen_width, global_screen_height);
     comic_mono_font = LoadFont("resources/ComicMono-Bold.ttf");
-    init_chunk_render();
 }
 
 static void handle_window_resize() {
@@ -93,8 +92,6 @@ static void update_camera_and_movement() {
         .width = CAMERA_WIDTH, 
         .height = CAMERA_HEIGHT,
     };
-
-    //- cabarger: Check for collisions around camera
 }
 
 static void crafty_update(F32 dt) {
@@ -103,7 +100,6 @@ static void crafty_update(F32 dt) {
         case GAME_RUNNING: {
             handle_window_resize();
             update_camera_and_movement();
-            update_chunk_render(dt);
             update_shaders(&global_camera);
             update_hotbar(global_screen_width, global_screen_height);
         } break;
@@ -111,10 +107,29 @@ static void crafty_update(F32 dt) {
     }
 }
 
+bool chunks_drawn = false;
 static void crafty_draw() {
+
+    /*
+        loading screen
+    */
+    if (!chunks_drawn) {
+        BeginDrawing();
+
+        ClearBackground(BLACK);
+        DrawTextEx(comic_mono_font, "loading", {0, 0}, 30, 1, RED);
+
+        EndDrawing();
+
+        init_chunk_render();
+        chunks_drawn = true;
+    }
+
     BeginDrawing();
+
     switch(game_state) {
         case GAME_RUNNING: {
+            
             ClearBackground(BLACK);
             BeginMode3D(global_camera);
             
@@ -122,6 +137,7 @@ static void crafty_draw() {
                     EndMode3D();
             DrawFPS(0, 0);
             draw_hotbar(global_screen_width, global_screen_height);
+
         } break;
         case GAME_PAUSED: {
             const char* str = "Press 1 to exit game, 2 to exit this menu.";
@@ -134,7 +150,6 @@ static void crafty_draw() {
             else if (IsKeyPressed(KEY_TWO)) {
                 game_state = GAME_RUNNING;
             }
-            
         } break;
     }
     EndDrawing();

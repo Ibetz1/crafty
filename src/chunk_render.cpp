@@ -4,6 +4,7 @@
 #include "cvec3.hpp"
 #include "cube_render.hpp"
 #include "db_perlin.hpp"
+#include "block_textures.hpp"
 
 static const vec3_s64 x_culling_offset = {1, 0, 0};
 static const vec3_s64 y_culling_offset = {0, 1, 0};
@@ -11,81 +12,10 @@ static const vec3_s64 z_culling_offset = {0, 0, 1};
 
 static World world;
 
-
-static U64 water_level = 20;
-static U64 sand_level = water_level + 1;
-
-typedef U8 block_ids;
-enum {
-    block_ids_AIR    = 0,
-    block_ids_GRASS  = 1,
-    block_ids_DIRT   = 2,
-    block_ids_STONE  = 3,
-    block_ids_SAND   = 4,
-    block_ids_WATER  = 5,
-};
-
-/*
-    takes in distance from top block
-*/
-static U8 block_tex_height_map(U64 y, U64 h) {
-    
-    // face blocks
-    if (h - y == 1) {
-        if (h < sand_level + 2) {
-            return block_ids_SAND; // sand
-        } else {
-            return block_ids_GRASS; // grass
-        }
-    }
-    else if (h - y < 8) {
-        return block_ids_DIRT; // dirt
-    } else {
-        return block_ids_STONE; // stone
-    }
-}
-
-/*
-    returns a block based on height
-*/
-vec3_u8 block_tex_color_map(U8 tex) {
-    if (tex == block_ids_GRASS) { // grass
-        return {70, 160, 20};
-    }
-
-    if (tex == block_ids_DIRT) { // dirt
-        return {130, 50, 16};
-    }
-
-    if (tex == block_ids_STONE) { // stone
-        return {90, 80, 70};
-    }
-
-    if (tex == block_ids_SAND) {
-        return {200, 180, 80};
-    }
-
-    if (tex == block_ids_WATER) {
-        return {30, 70, 150};
-    }
-
-    return {255, 0, 0};
-}
-
-/*
-    detmines block transparency
-*/
-U8 block_tex_alpha_map(U8 tex) {
-    if (tex == block_ids_AIR) return 0;
-    if (tex == block_ids_WATER) return 128;
-
-    return 255;
-}
-
 /*
     helps with height map generation
 */
-void fill_world_col(World* world, U64 x, U64 z, U64 h) {
+static void fill_world_col(World* world, U64 x, U64 z, U64 h) {
     for (U64 y = 0; y < World::block_width_y; y++) {
         if (y < h) {
             Block* b = World::block_at(world, {x, y, z});
@@ -103,15 +33,14 @@ void fill_world_col(World* world, U64 x, U64 z, U64 h) {
 /*
     fills terrain based on noise
 */
-void render_terrain(World* world) {
+static void render_terrain(World* world) {
     for (U64 x = 0; x < World::block_width_x; x++) {
         for (U64 y = 0; y < World::block_width_z; y++) {
             F32 nx = ((F32) (x) / (F32) World::block_width_x);
             F32 ny = ((F32) (y) / (F32) World::block_width_z);
 
             F32 noise = db::perlin(nx, ny) * 0.3 + 0.5;
-            noise += db::perlin(nx * 8, ny * 8) * 0.25;
-            // noise += db::perlin(nx / 2, ny / 2) + 0.2;
+                noise += db::perlin(nx * 3, ny * 3) * 0.25;
 
             U64 height = (U64) (noise * World::block_width_y) - 5;
 
@@ -121,9 +50,8 @@ void render_terrain(World* world) {
 }
 
 static Model static_chunks[WORLD_W_C][WORLD_W_C] = { 0 };
-static bool chunk_updates[WORLD_W_C][WORLD_W_C] = { 1 };
 
-bool get_culling_data(Mesh* mesh, World* world, vec3_u64 world_cor, vec3_f32 chunk_cor) {
+static bool get_culling_data(Mesh* mesh, World* world, vec3_u64 world_cor, vec3_f32 chunk_cor) {
     vec3_s64 s_world_cor = vec3_u64::cast<S64>(world_cor);
     Block* current_block = World::block_at(world, world_cor);
 
@@ -202,10 +130,9 @@ bool get_culling_data(Mesh* mesh, World* world, vec3_u64 world_cor, vec3_f32 chu
     return false;
 }
 
-void render_chunk(World* world, vec2_u64 chunk_cor) {
+static void render_chunk(World* world, vec2_u64 chunk_cor) {
     Chunk chunk = World::chunk_at_chunk_cor(world, chunk_cor);
 
-    UnloadModel(static_chunks[chunk_cor.x][chunk_cor.y]);
     Mesh mesh = { 0 };
     mesh.triangleCount = 0;
 
@@ -230,7 +157,6 @@ void render_chunk(World* world, vec2_u64 chunk_cor) {
 
     UploadMesh(&mesh, false);
     static_chunks[chunk_cor.x][chunk_cor.y] = LoadModelFromMesh(mesh);
-    chunk_updates[chunk_cor.x][chunk_cor.y] = false;
 }
 
 /*
@@ -240,16 +166,18 @@ void render_chunk(World* world, vec2_u64 chunk_cor) {
 void init_chunk_render() {
     world = World::alloc_chunks();
     render_terrain(&world);
-    memset(chunk_updates, true, WORLD_W_C * WORLD_W_C);
-}
 
-void update_chunk_render(F64 dt) {
+    for (U64 x = 0; x < World::chunk_width_x; x++) {
+        for (U64 y = 0; y < World::chunk_width_y; y++) {
+            render_chunk(&world, {x, y});
+        }
+    }
+
 }
 
 void draw_chunk_render() {
     for (U64 x = 0; x < World::chunk_width_x; x++) {
         for (U64 y = 0; y < World::chunk_width_y; y++) {
-            if (chunk_updates[x][y]) render_chunk(&world, {x, y});
             DrawModel(static_chunks[x][y], {(F32) x * Chunk::width_blocks_x, 
                                             0, 
                                             (F32) y * Chunk::width_blocks_z}, 

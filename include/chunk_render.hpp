@@ -7,11 +7,7 @@
 
 #include "chunk_loader.hpp"
 
-void render_chunk(World* world, vec2_u64 chunk_cor);
-
 void init_chunk_render();
-
-void update_chunk_render(F64 dt);
 
 void draw_chunk_render();
 
