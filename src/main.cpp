@@ -24,29 +24,6 @@ static Camera global_camera = { 0 };
 const int screen_width = 800;
 const int screen_height = 450;
 
-Model my_model;
-
-// Generate a simple triangle mesh from code
-static Mesh GenMeshCustom(void)
-{
-    Mesh mesh = { 0 };
-    mesh.triangleCount = 0;
-
-    vec3_f32 offset = {3, 0, 0};
-
-    push_bot_face(&mesh, offset);
-    push_top_face(&mesh, offset);
-    push_back_face(&mesh, offset);
-    push_front_face(&mesh, offset);
-    push_left_face(&mesh, offset);
-    push_right_face(&mesh, offset);
-
-    // Upload mesh data from CPU (RAM) to GPU (VRAM) memory
-    UploadMesh(&mesh, false);
-
-    return mesh;
-}
-
 /*
     on runtime
 */
@@ -69,8 +46,6 @@ static void init() {
     // ------- Lighting ---------
     handle_noise();
     init_chunk_render();
-
-     my_model = LoadModelFromMesh(GenMeshCustom());
 }
 
 static void update_camera_and_movement() {
@@ -105,8 +80,7 @@ static void update(F32 dt) {
 static void draw() {
     DrawGrid(100, 1);
 
-    // draw_chunk_render();
-    DrawModel(my_model, {0, 0, 0}, 1.0f, WHITE);
+    draw_chunk_render();
 }
 
 int main(void) {

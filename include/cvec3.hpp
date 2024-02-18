@@ -285,6 +285,7 @@ union cvec3 {
 */
 typedef cvec2<U8>  vec2_u8;
 typedef cvec2<U64> vec2_u64;
+typedef cvec2<F32> vec2_f32;
 
 typedef cvec3<U8>  vec3_u8;
 typedef cvec3<U64> vec3_u64;
