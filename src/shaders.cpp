@@ -1,30 +1,11 @@
 #include "shaders.h"
 
-namespace{
-    Shader shaders[MAX_POSTPRO_SHADERS] = { 0 };
-    int currentShader;
-}
+Shader shaders[MAX_POSTPRO_SHADERS] = { 0 };
+//Shader lighting;
 
-// void InitMesh()
-// {
-//     Mesh cube = GenMeshCube(1.0f, 1.0f, 1.0f);
+int currentShader;
 
-//     // Define transforms to be uploaded to GPU for instances
-//     Matrix *transforms = (Matrix *)RL_CALLOC(MAX_INSTANCES, sizeof(Matrix));   // Pre-multiplied transformations passed to rlgl
-
-//     // Translate and rotate cubes randomly
-//     for (int i = 0; i < MAX_INSTANCES; i++)
-//     {
-//         Matrix translation = MatrixTranslate((float)GetRandomValue(-50, 50), (float)GetRandomValue(-50, 50), (float)GetRandomValue(-50, 50));
-//         Vector3 axis = Vector3Normalize((Vector3){ (float)GetRandomValue(0, 360), (float)GetRandomValue(0, 360), (float)GetRandomValue(0, 360) });
-//         float angle = (float)GetRandomValue(0, 10)*DEG2RAD;
-//         Matrix rotation = MatrixRotate(axis, angle);
-        
-//         transforms[i] = MatrixMultiply(rotation, translation);
-//     }
-// }
-
-void InitShaders()
+void init_shaders(Material matInstances, Material matDefault)
 {
     // Load all postpro shaders
     // NOTE 1: All postpro shader use the base vertex shader (DEFAULT_VERTEX_SHADER)
@@ -43,24 +24,25 @@ void InitShaders()
     shaders[FX_SOBEL] = LoadShader(0, TextFormat("resources/shaders/glsl%i/sobel.fs", GLSL_VERSION));
     shaders[FX_BLOOM] = LoadShader(0, TextFormat("resources/shaders/glsl%i/bloom.fs", GLSL_VERSION));
     shaders[FX_BLUR] = LoadShader(0, TextFormat("resources/shaders/glsl%i/blur.fs", GLSL_VERSION));
-
-    currentShader = FX_GRAYSCALE;
-
-    // Shader shader = LoadShader(TextFormat("resources/shaders/glsl%i/lighting_instancing.vs", GLSL_VERSION),
-    //                            TextFormat("resources/shaders/glsl%i/lighting.fs", GLSL_VERSION));
-    // // Get shader locations
+    shaders[FX_LIGHTING] = LoadShader(TextFormat("resources/shaders/glsl%i/lighting_instancing.vs", GLSL_VERSION),
+                              TextFormat("resources/shaders/glsl%i/lighting.fs", GLSL_VERSION));
     
-    // shader.locs[SHADER_LOC_MATRIX_MVP] = GetShaderLocation(shader, "mvp");
-    // shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(shader, "viewPos");
-    // shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocationAttrib(shader, "instanceTransform");
+    currentShader = FX_LIGHTING;
+    int ambientLoc = GetShaderLocation(shaders[currentShader], "ambient");
+    SetShaderValue(shaders[currentShader], ambientLoc, (float[4]){ 0.2f, 0.2f, 0.2f, 1.0f }, SHADER_UNIFORM_VEC4);
+    
+    matInstances = LoadMaterialDefault();
+    matInstances.shader = shaders[currentShader];
+    matInstances.maps[MATERIAL_MAP_DIFFUSE].color = RED;
 
-    // // Set shader value: ambient light level
-    // int ambientLoc = GetShaderLocation(shader, "ambient");
-    // SetShaderValue(shader, ambientLoc, (float[4]){ 0.2f, 0.2f, 0.2f, 1.0f }, SHADER_UNIFORM_VEC4);
+    matDefault = LoadMaterialDefault();
+    matDefault.maps[MATERIAL_MAP_DIFFUSE].color = BLUE;
+
 
 }
-void UpdateShader()
+void update_shaders(float cameraPos[])
 {
+    SetShaderValue(shaders[currentShader], shaders[currentShader].locs[SHADER_LOC_VECTOR_VIEW], cameraPos, SHADER_UNIFORM_VEC3);
     if (IsKeyPressed(KEY_J)) currentShader++;
     else if (IsKeyPressed(KEY_K)) currentShader--;
 
@@ -68,27 +50,33 @@ void UpdateShader()
     else if (currentShader < 0) currentShader = MAX_POSTPRO_SHADERS - 1;
 }
 
-int getCurrentShader()
+Shader get_current_shader()
+{
+    return shaders[currentShader];
+}
+
+int get_shader_index()
 {
     return currentShader;
 }
 
-void BeginShaders()
+void begin_shaders()
 {
+    shaders[currentShader].locs[SHADER_LOC_MATRIX_MVP] = GetShaderLocation(shaders[currentShader], "mvp");
+    shaders[currentShader].locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(shaders[currentShader], "viewPos");
+    shaders[currentShader].locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocationAttrib(shaders[currentShader], "instanceTransform");
+    int ambientLoc = GetShaderLocation(shaders[currentShader], "ambient");
+    SetShaderValue(shaders[currentShader], ambientLoc, (float[4]){ 0.2f, 0.2f, 0.2f, 1.0f }, SHADER_UNIFORM_VEC4);
     BeginShaderMode(shaders[currentShader]);
 }
 
-void EndShaders()
+void end_shaders()
 {
     EndShaderMode();
 }
 
-void DeloadShaders()
+void deload_shaders()
 {
     for (int i = 0; i < MAX_POSTPRO_SHADERS; i++) UnloadShader(shaders[i]);
     //UnloadShader(shade);
 }
-// void CreateShaders()
-// {
-//     CreateLight(LIGHT_DIRECTIONAL, (Vector3){ 50.0f, 50.0f, 0.0f }, Vector3Zero(), WHITE, shader);
-// }

@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include "raymath.h"
+
 #include "shaders.h"
 #include "chunks.hpp"
 
@@ -8,6 +9,7 @@ extern "C" {
     #include "base_inc.c"
 }
 
+//#include "shaders.cpp"
 
 #define CAMERA_MOUSE_MOVE_SENSITIVITY 0.03f
 #define CAMERA_MOVE_SPEED             0.09f
@@ -24,6 +26,12 @@ global Model global_DEBUG_block_model;
 global Model church;
 global Texture2D churchTexture;
 global RenderTexture2D target;
+global Material matInstances;
+global Material matDefault;
+
+// Test Mesh for Shaders
+//global Mesh cube;
+//global Matrix *transforms;   // Pre-multiplied transformations passed to rlgl
 
 const int screen_width = 800;
 const int screen_height = 450;
@@ -34,13 +42,28 @@ internal void init() {
     InitWindow(screen_width, screen_height, "AlgoCraft3D");
     SetTargetFPS(60);
     DisableCursor(); // NOTE(cabarger): Also locks the cursor.
-    InitShaders();
+    init_shaders(matInstances, matDefault);
+
+    // Mesh cube = GenMeshCube(1.0f, 1.0f, 1.0f);
+    // Matrix *transforms = (Matrix *)RL_CALLOC(MAX_INSTANCES, sizeof(Matrix));
+    // //Test Matrix
+    // for (int i = 0; i < MAX_INSTANCES; i++)
+    // {
+    //     Matrix translation = MatrixTranslate((float)GetRandomValue(-50, 50), (float)GetRandomValue(-50, 50), (float)GetRandomValue(-50, 50));
+    //     Vector3 axis = Vector3Normalize((Vector3){ (float)GetRandomValue(0, 360), (float)GetRandomValue(0, 360), (float)GetRandomValue(0, 360) });
+    //     float angle = (float)GetRandomValue(0, 10)*DEG2RAD;
+    //     Matrix rotation = MatrixRotate(axis, angle);
+        
+    //     transforms[i] = MatrixMultiply(rotation, translation);
+    // }
     
     // Test church model
     target = LoadRenderTexture(screen_width, screen_height);
+
     church = LoadModel("./resources/church.obj");                 // Load OBJ model
     churchTexture = LoadTexture("./resources/church_diffuse.png"); // Load model texture (diffuse map)
     church.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = churchTexture;        // Set model diffuse texture
+    //
 
     global_DEBUG_block_mesh = GenMeshCube(1.0f, 1.0f, 1.0f);                            
     global_DEBUG_block_material = LoadMaterialDefault();
@@ -93,11 +116,12 @@ internal void update(F32 dt) {
     if (IsKeyDown(KEY_LEFT_CONTROL)) movement_this_frame.z += -CAMERA_MOVE_SPEED; // Down 
    
     UpdateCameraPro(&global_camera,  movement_this_frame, rotation_this_frame, 0.0f);
-    UpdateShader();
+    float cameraPos[3] = { global_camera.position.x, global_camera.position.y, global_camera.position.z };
+    update_shaders(cameraPos);
 
 }
 
-#define SAM_DRAW 0
+#define SAM_DRAW 1
 #if SAM_DRAW 
 internal void draw() {
     BeginTextureMode(target);  
@@ -105,7 +129,16 @@ internal void draw() {
 
     BeginMode3D(global_camera);
 
+    // DrawMesh(cube, matDefault, MatrixTranslate(-10.0f, 0.0f, 0.0f));
+    // DrawMeshInstanced(cube, matInstances, transforms, MAX_INSTANCES);
+    // DrawMesh(cube, matDefault, MatrixTranslate(10.0f, 0.0f, 0.0f));
     // Church
+    // DrawModel(
+    //     global_DEBUG_block_model, 
+    //     (Vector3){.x = 0.0f, .y = 0.0f, .z = 0.0f},  // Pos
+    //     1.0f, // Scale
+    //     BLUE // Tint
+    // ); 
     DrawModel(church, { 0.0f, 0.0f, 0.0f }, 0.1f, WHITE);   // Draw 3d model with texture
     DrawGrid(10, 1.0f); 
 
@@ -115,16 +148,18 @@ internal void draw() {
     BeginDrawing();
     ClearBackground(RAYWHITE);
 
-    BeginShaders();
+    begin_shaders();
+        DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2){ 200, 400 }, WHITE);
         DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2){ 0, 0 }, WHITE);
-    EndShaders();
+        DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2){ 0, 0 }, WHITE);
+    end_shaders();
 
     // DRAW TEXT over 2d shapes and drawn texture
     DrawRectangle(0, 9, 580, 30, Fade(LIGHTGRAY, 0.7f));
     
     DrawText("(c) Church 3D model by Alberto Cano", screen_width - 200, screen_height - 20, 10, GRAY);
     DrawText("CURRENT POSTPRO SHADER:", 10, 15, 20, BLACK);
-    DrawText(postproShaderText[getCurrentShader()], 330, 15, 20, RED);
+    DrawText(postproShaderText[get_shader_index()], 330, 15, 20, RED);
     DrawText("< >", 540, 10, 30, DARKBLUE);
     
     EndDrawing();
@@ -134,6 +169,7 @@ internal void draw() {
 #endif
 
 int main(void) {
+    
     init();
     while (!WindowShouldClose()) {
         update(GetFrameTime());
@@ -142,7 +178,8 @@ int main(void) {
     UnloadTexture(churchTexture);        
     UnloadModel(church);             
     UnloadRenderTexture(target);    
-    DeloadShaders();
+    deload_shaders();
+    // RL_FREE(transforms);
     CloseWindow();
 
     return 0;

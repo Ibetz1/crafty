@@ -1,10 +1,11 @@
+//#include "rlights.h"
 #include "raylib.h"
 #include "raymath.h"
 #include <stdlib.h>
 
 #define MAX_INSTANCES  10000
 
-#define RLIGHTS_IMPLEMENTATION
+//#define RLIGHTS_IMPLEMENTATION
 
 
 #if defined(PLATFORM_DESKTOP)
@@ -13,14 +14,16 @@
     #define GLSL_VERSION            100
 #endif
 
-#define MAX_POSTPRO_SHADERS         12
+#define MAX_POSTPRO_SHADERS         13
 
-void UpdateShader();
-void InitShaders();
-void DeloadShaders();
-void BeginShaders();
-void EndShaders();
-int getCurrentShader();
+
+void update_shaders(float cameraPos[]);
+void init_shaders(Material matInstances, Material matDefault);
+void deload_shaders();
+void begin_shaders();
+void end_shaders();
+Shader get_current_shader();
+int get_shader_index();
 
 typedef enum {
     FX_GRAYSCALE = 0,
@@ -35,6 +38,7 @@ typedef enum {
     FX_SOBEL,
     FX_BLOOM,
     FX_BLUR,
+    FX_LIGHTING,
     //FX_FXAA
 } PostproShader;
 
@@ -51,5 +55,6 @@ static const char *postproShaderText[] = {
     "SOBEL",
     "BLOOM",
     "BLUR",
+    "LIGHTING"
     //"FXAA"
 };
