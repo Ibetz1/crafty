@@ -95,11 +95,6 @@ static void crafty_update(F32 dt) {
             game_state = GAME_PAUSED;
         else if(game_state == GAME_PAUSED)
             game_state = GAME_RUNNING;
-        // game_paused = !game_paused;
-        // if (game_paused == 1) game_state = GAME_PAUSED;
-        // else {
-        //     game_state = GAME_RUNNING;
-        // }
     }
     switch(game_state) {
         case GAME_RUNNING:
