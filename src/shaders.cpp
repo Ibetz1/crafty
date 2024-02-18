@@ -1,4 +1,4 @@
-#include "shaders.h"
+#include "shaders.hpp"
 
 Shader shaders[MAX_POSTPRO_SHADERS] = { 0 };
 Light lights[MAX_LIGHTS] = { 0 };
@@ -34,7 +34,7 @@ void init_shaders()
     
     currentShader = FX_LIGHTING;
 
-    
+
 
     // Important loc
     lighting.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(lighting, "viewPos");
@@ -66,7 +66,7 @@ void draw_lights()
     }
 }
 
-void update_shaders(float cameraPos[])
+void update_shaders()
 {
     if (IsKeyPressed(KEY_Y)) { lights[0].enabled = !lights[0].enabled; }
     // if (IsKeyPressed(KEY_R)) { lights[1].enabled = !lights[1].enabled; }

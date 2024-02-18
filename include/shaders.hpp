@@ -19,7 +19,7 @@
 #define MAX_LIGHTS  1
 
 
-void update_shaders(float cameraPos[]);
+void update_shaders();
 void init_shaders();
 void deload_shaders();
 void begin_shaders();

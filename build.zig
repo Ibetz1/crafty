@@ -19,8 +19,16 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
-    exe.addCSourceFiles(&.{"src/main.cpp", "src/shaders.cpp", "src/rlights.cpp",}, &.{});
-    exe.addCSourceFiles(&.{"src/chunks.cpp"}, &.{});
+
+    const ally = std.heap.page_allocator;
+
+    var iterable_dir = try std.fs.cwd().openIterableDir("./src", .{});
+    var src_walker = try iterable_dir.walk(ally);
+    while (try src_walker.next()) |entry| {
+        if (std.mem.eql(u8, std.fs.path.extension(entry.basename), ".cpp"))
+            exe.addCSourceFile(.{ .file = .{ .path = try iterable_dir.dir.realpathAlloc(ally, entry.basename) }, .flags = &.{} });
+    }
+
     exe.linkLibCpp();
     exe.linkLibC();
     exe.addIncludePath(.{ .path = src_dir ++ "/raylib/src" });

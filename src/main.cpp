@@ -1,62 +1,53 @@
 #include "base_inc.h"
 #include "raylib.h"
 #include "raymath.h"
-
-#include "shaders.h"
 #include "chunks.hpp"
 
+#include "shaders.hpp"
+
 extern "C" {
-    #include "base_inc.h"
+    #include "base_inc.c"
 }
 
-//#include "shaders.cpp"
 
 #define CAMERA_MOUSE_MOVE_SENSITIVITY                   0.03f     
 #define CAMERA_MOVE_SPEED                               0.09f
 #define CAMERA_ROTATION_SPEED                           0.03f
 
-global World global_world;
+static World global_world;
 
-global Camera global_camera = { 0 };
+static Camera global_camera = { 0 };
 
-global Mesh global_DEBUG_block_mesh; 
-global Material global_DEBUG_block_material;
-global Model global_DEBUG_block_model;
+static Mesh global_DEBUG_block_mesh; 
+static Material global_DEBUG_block_material;
+static Model global_DEBUG_block_model;
 
-global Model church;
-global Model cube;
 global Model plane;
-global Texture2D churchTexture;
-global RenderTexture2D target;
-
+static Model church;
+static Texture2D churchTexture;
+static RenderTexture2D target;
 
 const int screen_width = 800;
 const int screen_height = 450;
 /*
     on runtime
 */
-internal void init() {
+static void init() {
     InitWindow(screen_width, screen_height, "AlgoCraft3D");
     SetTargetFPS(60);
     DisableCursor(); // NOTE(cabarger): Also locks the cursor.
     init_shaders();
-
     
-    // Target for rendering in shader mode
-    target = LoadRenderTexture(screen_width, screen_height);
-    // Create light source
-    // v3 position, v3 target, color
     init_light((Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
 
     plane = LoadModelFromMesh(GenMeshPlane(10.0f, 10.0f, 3, 3));
-    //cube = LoadModelFromMesh(GenMeshCube(2.0f, 4.0f, 2.0f));
     plane.materials[0].shader = get_lighting_shader();
-    //cube.materials[0].shader = get_lighting_shader();
 
+    // Test church model
+    target = LoadRenderTexture(screen_width, screen_height);
     church = LoadModel("./resources/church.obj");                 // Load OBJ model
     churchTexture = LoadTexture("./resources/church_diffuse.png"); // Load model texture (diffuse map)
     church.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = churchTexture;        // Set model diffuse texture
-    //
 
     global_DEBUG_block_mesh = GenMeshCube(1.0f, 1.0f, 1.0f);                            
     global_DEBUG_block_material = LoadMaterialDefault();
@@ -69,30 +60,12 @@ internal void init() {
     global_camera.fovy = 45.0f;                             // Field-of-view Y
     global_camera.projection = CAMERA_PERSPECTIVE;          // Projection type
     Vector3 position = { 0.0f, 0.0f, 0.0f };                // Set model position
-
-    //- cabarger: Init world
-    global_world = World::alloc_chunks();
-    
-    //- cabarger: Test fill blocks from Ian's code
-    Chunk chunk = World::chunk_at_chunk_cor(&global_world, 0, 0);
-    
-    for (U8 block_x=0; block_x < CHUNK_W; ++block_x) {
-        for (U8 block_y=0; block_y < CHUNK_W; ++block_y) {
-            for (U8 block_z=0; block_z < CHUNK_H; ++block_z) {
-                if (block_z == 10) {
-                    Block* block_p = 
-                        Chunk::block_at(&chunk, block_x, block_y, block_z);
-                    Block::set_value(block_p, 1);
-                }
-            }
-        }
-    }
 }
 
 /*
     pre-render pass
 */
-internal void update(F32 dt) {
+static void update(F32 dt) {
     Vector2 mouse_pos_delta = GetMouseDelta();
     Vector3 movement_this_frame = Vector3Zero();
     Vector3 rotation_this_frame = Vector3{
@@ -110,31 +83,19 @@ internal void update(F32 dt) {
    
     UpdateCameraPro(&global_camera,  movement_this_frame, rotation_this_frame, 0.0f);
     float cameraPos[3] = { global_camera.position.x, global_camera.position.y, global_camera.position.z };
-    update_shaders(cameraPos);
-
+    update_shaders();
 }
 
-#define SAM_DRAW 1
-#if SAM_DRAW 
-internal void draw() {
+static void draw() {
     BeginTextureMode(target);  
     ClearBackground(BLACK);
 
     BeginMode3D(global_camera);
 
     draw_lights();
-    // Church
-    // DrawModel(
-    //     global_DEBUG_block_model, 
-    //     (Vector3){.x = 0.0f, .y = 0.0f, .z = 0.0f},  // Pos
-    //     1.0f, // Scale
-    //     BLUE // Tint
-    // ); 
-    DrawModel(plane, { 0.0f, 0.0f, 0.0f }, 1.0f, WHITE);   // Draw 3d model with texture
-    //DrawModel(cube, { 0.0f, 0.0f, 0.0f }, 1.0f, WHITE);   // Draw 3d model with texture
-    DrawModel(church, { 0.0f, 0.0f, 0.0f }, 0.1f, WHITE);   // Draw 3d model with texture
 
-    //DrawModel(church, { 2.2f, 4.0f, 0.0f }, 1.0f, WHITE);   // Draw 3d model with texture
+    DrawModel(plane, { 0.0f, 0.0f, 0.0f }, 1.0f, WHITE);   // Draw 3d model with texture
+    DrawModel(church, { 0.0f, 0.0f, 0.0f }, 0.1f, WHITE);   // Draw 3d model with texture
 
     DrawGrid(10, 1.0f); 
 
@@ -159,9 +120,6 @@ internal void draw() {
     
     EndDrawing();
 }
-#else
-#include "render.cpp"
-#endif
 
 int main(void) {
     

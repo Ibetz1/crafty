@@ -24,11 +24,11 @@ struct String8Node {
 };
 
 #define Str8Lit(a) (String8){.str = a, .len = sizeof(a)}
-internal String8 str8_cat(Arena* arena, String8 a, String8 b);
-internal String8 str8_from_memz(U8* str); 
-internal String8 str8_sub(String8 str, U64 start, U64 end); 
-internal String8 str8_copy(Arena* arena, String8 source); 
-internal String8 str8_copyz(Arena* arena, String8 source);
+static String8 str8_cat(Arena* arena, String8 a, String8 b);
+static String8 str8_from_memz(U8* str); 
+static String8 str8_sub(String8 str, U64 start, U64 end); 
+static String8 str8_copy(Arena* arena, String8 source); 
+static String8 str8_copyz(Arena* arena, String8 source);
 
 #define BASE_STRING_H
 #endif
