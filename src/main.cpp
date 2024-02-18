@@ -36,6 +36,11 @@ static void init() {
     /*
         our shit down here
     */
+    // ------- Lighting --------
+    init_shaders();
+    create_light(LIGHT_POINT, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
+    create_light(LIGHT_DIRECTIONAL, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
+    // ------- Lighting ---------
     init_chunk_render();
 }
 
@@ -64,6 +69,7 @@ static void update_camera_and_movement() {
 static void update(F32 dt) {
     update_camera_and_movement();
     update_chunk_render(dt);
+    update_shaders(&global_camera);
 }
 
 static void draw() {
@@ -81,16 +87,18 @@ int main(void) {
     while (!WindowShouldClose()) {
         update(GetFrameTime());
 
-        BeginDrawing();
         BeginMode3D(global_camera);
 
+        BeginDrawing();
         ClearBackground(BLACK);
         
         draw();
 
         EndMode3D();
+    
         EndDrawing();
     }
+    deload_shaders();
     CloseWindow();
 
     return 0;
