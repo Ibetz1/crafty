@@ -1,14 +1,9 @@
 #include "ui.hpp"
 #include <vector>
 
-#define RAYGUI_IMPLEMENTATION
-#include "raygui.h"
-
 std::vector <Button> buttons;
-//std::vector <Line> lines;
 
 int highlighted = 0;
-int gamePaused = 0;
 
 bool drawRect = false;
 bool drawRoundedRect = true;
@@ -21,6 +16,7 @@ void create_button(int x, int y, int width, int height)
 	a.y = y;
 	a.width = width;
 	a.height = height;
+	a.block;
 	buttons.push_back(a);
 }
 
@@ -42,6 +38,7 @@ void update_hotbar(int screen_width, int screen_height)
 	float mouseWheelMovement = GetMouseWheelMove();
 	if(mouseWheelMovement != 0)
 	{
+		// -1 for down, 1 for up
 		if (mouseWheelMovement == -1)
 		{
 			if (highlighted < 8) highlighted++;
@@ -57,6 +54,7 @@ void update_hotbar(int screen_width, int screen_height)
 
 	for (int i = 0; i < 9; i++)
 	{
+		// KEY_ONE starts at index 49
 		if (IsKeyDown(i+49))
 		{
 			highlighted = i;
@@ -65,12 +63,23 @@ void update_hotbar(int screen_width, int screen_height)
 
 }
 
+void draw_items(ItemBlock block)
+{
+	// Could iterate through each one to check for .block. 
+	// for (int i = 0; i < 9)
+	
+	// ADD STUFF HERE
+	DrawCube({0,0,0}, buttons[highlighted].width/1.2f, buttons[highlighted].width/1.2f, buttons[highlighted].width/1.2f, BLACK);
+	//buttons[highlighted].block = 
+}
+
 void draw_hotbar(int screen_width, int screen_height)
 {	
 	int i = 0;
 	for (const Button& button : buttons)
 	{
 		DrawRectangle(button.x, button.y, button.width, button.height, Fade(LIGHTGRAY, 0.3f));
+
 		if (i == highlighted)
 		{
 			// top bottom left right
