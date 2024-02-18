@@ -1,3 +1,6 @@
+#ifndef _SHADERS_HPP
+#define _SHADERS_HPP
+
 //#include "rlights.h"
 #include "raylib.h"
 #include "raymath.h"
@@ -67,3 +70,5 @@ static const char *postproShaderText[] = {
     "LIGHTING"
     //"FXAA"
 };
+
+#endif
