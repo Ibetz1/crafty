@@ -47,7 +47,7 @@ void init_shaders()
 
     // Ambient light ( Can see it in pitch black )
     int ambientLoc = GetShaderLocation(lighting, "ambient");
-    SetShaderValue(lighting, ambientLoc, (float[4]){ 0.1f, 0.1f, 0.1f, 1.0f }, SHADER_UNIFORM_VEC4);
+    SetShaderValue(lighting, ambientLoc, (float[4]){ 0.3f, 0.3f, 0.3f, 1.0f }, SHADER_UNIFORM_VEC4);
 }
 
 // LIGHT_POINT, LIGHT_DIRECTIONAL

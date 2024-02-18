@@ -5,7 +5,6 @@
 #include "raygui.h"
 
 std::vector <Button> buttons;
-//std::vector <Line> lines;
 
 int highlighted = 0;
 int gamePaused = 0;
@@ -42,6 +41,7 @@ void update_hotbar(int screen_width, int screen_height)
 	float mouseWheelMovement = GetMouseWheelMove();
 	if(mouseWheelMovement != 0)
 	{
+		// -1 for down, 1 for up
 		if (mouseWheelMovement == -1)
 		{
 			if (highlighted < 8) highlighted++;
@@ -57,6 +57,7 @@ void update_hotbar(int screen_width, int screen_height)
 
 	for (int i = 0; i < 9; i++)
 	{
+		// KEY_ONE starts at index 49
 		if (IsKeyDown(i+49))
 		{
 			highlighted = i;
