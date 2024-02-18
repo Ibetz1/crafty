@@ -1,6 +1,8 @@
 #include "base_inc.h"
 #include "raylib.h"
 #include "raymath.h"
+
+#include "shaders.hpp"
 #include "chunks.hpp"
 
 #include "shaders.hpp"
