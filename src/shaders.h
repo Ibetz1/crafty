@@ -21,6 +21,7 @@ void DeloadShaders();
 void BeginShaders();
 void EndShaders();
 int getCurrentShader();
+
 typedef enum {
     FX_GRAYSCALE = 0,
     FX_POSTERIZATION,

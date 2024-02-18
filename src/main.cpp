@@ -101,7 +101,7 @@ internal void draw() {
     //     1.0f, // Scale
     //     WHITE // Tint
     // ); 
-        EndShaderMode();
+        EndShaders();
 
         // DRAW TEXT over 2d shapes and drawn texture
         DrawRectangle(0, 9, 580, 30, Fade(LIGHTGRAY, 0.7f));
