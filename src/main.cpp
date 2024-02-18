@@ -1,6 +1,8 @@
 #include "raylib.h"
 #include "raymath.h"
 
+#include "shaders.h"
+
 extern "C" {
     #include "base_inc.h"
     #include "base_inc.c"
@@ -15,15 +17,26 @@ global Camera global_camera = { 0 };
 global Mesh global_DEBUG_block_mesh; 
 global Material global_DEBUG_block_material;
 global Model global_DEBUG_block_model;
+// Church
+global Model church;
+global Texture2D churchTexture;
+global RenderTexture2D target;
 
+const int screen_width = 800;
+const int screen_height = 450;
 /*
     on runtime
 */
 internal void init() {
-    const int screen_width = 800;
-    const int screen_height = 450;
     InitWindow(screen_width, screen_height, "AlgoCraft3D");
+    InitShaders();
     
+    // Test church model
+    target = LoadRenderTexture(screen_width, screen_height);
+    church = LoadModel("./resources/church.obj");                 // Load OBJ model
+    churchTexture = LoadTexture("./resources/church_diffuse.png"); // Load model texture (diffuse map)
+    church.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = churchTexture;        // Set model diffuse texture
+
     global_DEBUG_block_mesh = GenMeshCube(1.0f, 1.0f, 1.0f);                            
     global_DEBUG_block_material = LoadMaterialDefault();
     global_DEBUG_block_model = LoadModelFromMesh(global_DEBUG_block_mesh);
@@ -57,25 +70,47 @@ internal void update(F32 dt) {
     if (IsKeyDown(KEY_LEFT_CONTROL)) movement_this_frame.z += -CAMERA_MOVE_SPEED; // Down 
    
     UpdateCameraPro(&global_camera,  movement_this_frame, rotation_this_frame, 0.0f);
+    UpdateShader();
+
 }
 
 /*
     render pass
 */
 internal void draw() {
+
+    BeginTextureMode(target);  
+        ClearBackground(RAYWHITE);
+
+        BeginMode3D(global_camera);
+        // Church
+            DrawModel(church, { 0.0f, 0.0f, 0.0f }, 0.1f, WHITE);   // Draw 3d model with texture
+            DrawGrid(10, 1.0f);     // Draw a grid
+
+        EndMode3D();
+    EndTextureMode();
+
     BeginDrawing();
-    ClearBackground(BLACK);
+        ClearBackground(RAYWHITE);
 
-    BeginMode3D(global_camera);
+        BeginShaders();
+            DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2){ 0, 0 }, WHITE);
+    // DrawModel(
+    //     global_DEBUG_block_model, 
+    //     (Vector3){.x = 0.0f, .y = 0.0f, .z = 0.0f},  // Pos
+    //     1.0f, // Scale
+    //     WHITE // Tint
+    // ); 
+        EndShaderMode();
 
-    DrawModel(
-        global_DEBUG_block_model, 
-        (Vector3){.x = 0.0f, .y = 0.0f, .z = 0.0f},  // Pos
-        1.0f, // Scale
-        WHITE // Tint
-    ); 
-
-    EndMode3D();
+        // DRAW TEXT over 2d shapes and drawn texture
+        DrawRectangle(0, 9, 580, 30, Fade(LIGHTGRAY, 0.7f));
+        
+        DrawText("(c) Church 3D model by Alberto Cano", screen_width - 200, screen_height - 20, 10, GRAY);
+        DrawText("CURRENT POSTPRO SHADER:", 10, 15, 20, BLACK);
+        DrawText(postproShaderText[getCurrentShader()], 330, 15, 20, RED);
+        DrawText("< >", 540, 10, 30, DARKBLUE);
+        
     EndDrawing();
 }
 
@@ -88,7 +123,10 @@ int main(void) {
         update(GetFrameTime());
         draw();
     }
-    
+    UnloadTexture(churchTexture);        
+    UnloadModel(church);             
+    UnloadRenderTexture(target);    
+    DeloadShaders();
     CloseWindow();
 
     return 0;
