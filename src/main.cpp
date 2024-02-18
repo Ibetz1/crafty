@@ -109,11 +109,11 @@ static void update(F32 dt) {
 
 static void draw() {
     BeginDrawing();
-    ClearBackground(BLACK);
     switch(game_state)
     {
         case GAME_RUNNING:
         {
+            ClearBackground(BLACK);
             BeginMode3D(global_camera);
             
             DrawGrid(100, 1);
@@ -126,10 +126,11 @@ static void draw() {
         }
         case GAME_PAUSED:
         {
-            Rectangle rec = { ((float)screen_width - 100 - 250)/2, (screen_height - 100)/2.0f, (float)400, (float)400 };
-            DrawRectangleRec(rec, Fade(GOLD, 0.6f));
-    
-            DrawText("Press 1 to exit, 2 to leave", screen_width - 500, screen_height - 300, 10, GRAY);
+            Font my_font = LoadFont("resources/ComicMono-Bold.ttf");
+            char * str = "Press 1 to exit, 2 to leave";
+            Vector2 vec = {screen_width/2.0f - MeasureText(str, 30)/2.0f, screen_height/2.0f};
+
+            DrawTextEx(my_font, str, vec, 30, 1, RED);
             if (IsKeyPressed(KEY_ONE))
             {
                 exit(EXIT_SUCCESS);
