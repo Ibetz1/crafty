@@ -17,6 +17,7 @@ enum GameState
 
 static World global_world;
 static Camera global_camera = { 0 };
+static Rectangle global_camera_hitbox = { 0 };
 
 static GameState game_state;
 global Font my_font;
@@ -66,7 +67,9 @@ static void update_camera_and_movement() {
 #define CAMERA_MOUSE_MOVE_SENSITIVITY 0.03f     
 #define CAMERA_MOVE_SPEED             0.09f
 #define CAMERA_ROTATION_SPEED         0.03f
-   
+#define CAMERA_WIDTH                  0.25f
+#define CAMERA_HEIGHT                 0.25f
+
     Vector2 mouse_pos_delta = GetMouseDelta();
     Vector3 movement_this_frame = Vector3Zero();
     Vector3 rotation_this_frame = Vector3{
@@ -83,42 +86,35 @@ static void update_camera_and_movement() {
     if (IsKeyDown(KEY_LEFT_CONTROL)) movement_this_frame.z += -CAMERA_MOVE_SPEED; // Down 
    
     UpdateCameraPro(&global_camera,  movement_this_frame, rotation_this_frame, 0.0f);
+
+    global_camera_hitbox = (Rectangle){
+        .x = global_camera.position.x - CAMERA_WIDTH / 2, 
+        .y = global_camera.position.y - CAMERA_HEIGHT / 2,
+        .width = CAMERA_WIDTH, 
+        .height = CAMERA_HEIGHT,
+    };
+
+    //- cabarger: Check for collisions around camera
 }
 
-/*
-    pre-render pass
-*/
 static void crafty_update(F32 dt) {
-    if(IsKeyPressed(KEY_P)) 
-    {
-        if (game_state == GAME_RUNNING)
-            game_state = GAME_PAUSED;
-        else if(game_state == GAME_PAUSED)
-            game_state = GAME_RUNNING;
-    }
+    if (IsKeyPressed(KEY_P)) game_state = (game_state + 1) % 2
     switch(game_state) {
-        case GAME_RUNNING:
-        {
+        case GAME_RUNNING: {
             handle_window_resize();
             update_camera_and_movement();
             update_chunk_render(dt);
             update_shaders(&global_camera);
             update_hotbar(global_screen_width, global_screen_height);
-            break;
-        }
-        case GAME_PAUSED:
-        {
-            break;
-        }
+        } break;
+        case GAME_PAUSED: break;
     }
 }
 
 static void crafty_draw() {
     BeginDrawing();
-    switch(game_state)
-    {
-        case GAME_RUNNING:
-        {
+    switch(game_state) {
+        case GAME_RUNNING: {
             ClearBackground(BLACK);
             BeginMode3D(global_camera);
             
@@ -128,24 +124,21 @@ static void crafty_draw() {
                     EndMode3D();
             DrawFPS(0, 0);
             draw_hotbar(global_screen_width, global_screen_height);
-            break;
-        }
-        case GAME_PAUSED:
-        {
-            char * exit_str = "Press 1 to exit, 2 to leave";
-            Vector2 vec = {global_screen_width/2.0f - MeasureText(exit_str, 30)/2.0f, global_screen_height/2.0f};
+        } break;
+        case GAME_PAUSED: {
+            Font my_font = LoadFont("resources/ComicMono-Bold.ttf");
+            const char* str = "Press 1 to exit, 2 to leave";
+            Vector2 vec = {global_screen_width/2.0f - MeasureText(str, 30)/2.0f, global_screen_height/2.0f};
 
-            DrawTextEx(my_font, exit_str, vec, 30, 1, RED);
-            if (IsKeyPressed(KEY_ONE))
-            {
+            DrawTextEx(my_font, str, vec, 30, 1, RED);
+            if (IsKeyPressed(KEY_ONE)) {
                 exit(EXIT_SUCCESS);
             }
-            else if (IsKeyPressed(KEY_TWO))
-            {
+            else if (IsKeyPressed(KEY_TWO)) {
                 game_state = GAME_RUNNING;
             }
-            break;
-        }
+            
+        } break;
     }
     EndDrawing();
 }
