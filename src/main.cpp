@@ -1,5 +1,6 @@
 #include "base_inc.h"
 #include "raylib.h"
+#include "rlgl.h"
 #include "raymath.h"
 #include "ui.hpp"
 #include "chunk_render.hpp"
@@ -18,6 +19,9 @@ static World global_world;
 static Camera global_camera = { 0 };
 static BoundingBox global_camera_bb = { 0 };
 
+static Model global_skybox_model = { 0 };
+static Shader global_shdr_cubemap = { 0 };
+
 static GameState game_state;
 static Font comic_mono_font;
 
@@ -32,9 +36,30 @@ static void crafty_init() {
     SetWindowState(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_TOPMOST);
     SetTargetFPS(60);
     DisableCursor(); // NOTE(cabarger): Also locks the cursor
-    
+
+    Mesh skybox_cube_mesh = GenMeshCube(1.0f, 1.0f, 1.0f);
+    global_skybox_model = LoadModelFromMesh(skybox_cube_mesh);
+
+    global_skybox_model.materials[0].shader = LoadShader(TextFormat("resources/shaders/glsl%i/skybox.vs", 330),
+                                        TextFormat("resources/shaders/glsl%i/skybox.fs", 330));
+
+    SetShaderValue(global_skybox_model.materials[0].shader, GetShaderLocation(global_skybox_model.materials[0].shader, "environmentMap"), (int[1]){ MATERIAL_MAP_CUBEMAP }, SHADER_UNIFORM_INT);
+    SetShaderValue(global_skybox_model.materials[0].shader, GetShaderLocation(global_skybox_model.materials[0].shader, "doGamma"), (int[1]) { 0 }, SHADER_UNIFORM_INT);
+    SetShaderValue(global_skybox_model.materials[0].shader, GetShaderLocation(global_skybox_model.materials[0].shader, "vflipped"), (int[1]){ 0 }, SHADER_UNIFORM_INT);
+
+    global_shdr_cubemap = LoadShader(TextFormat("resources/shaders/glsl%i/cubemap.vs", 330),
+                                TextFormat("resources/shaders/glsl%i/cubemap.fs", 330));
+
+    SetShaderValue(global_shdr_cubemap, GetShaderLocation(global_shdr_cubemap, "equirectangularMap"), (int[1]){ 0 }, SHADER_UNIFORM_INT);
+
+    char skybox_filename[256] = { 0 };
+
+    Image skybox_img = LoadImage("resources/skybox.png");
+    global_skybox_model.materials[0].maps[MATERIAL_MAP_CUBEMAP].texture = LoadTextureCubemap(skybox_img, CUBEMAP_LAYOUT_AUTO_DETECT);     
+    UnloadImage(skybox_img);
+        
     //- NOTE(cabarger): camera default values...
-    global_camera.position = (Vector3){ 0.2f, 0.4f, 0.2f }; 
+    global_camera.position = (Vector3){ 0.2f, CHUNK_W*3, 0.2f }; 
     global_camera.target = (Vector3){ 0.185f, 0.4f, 0.0f }; // Looking at point
     global_camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };       // Up vector (rotation towards target)
     global_camera.fovy = 45.0f;                             // Field-of-view Y
@@ -67,6 +92,8 @@ static void update_camera_and_movement() {
         .z = 0.0f
     };
 
+    Vector3 last_camera_p = global_camera.position; //- cabarger: We'll save the position 
+                                                    // in the case of a collision.
     if (IsKeyDown(KEY_W)) movement_this_frame.x += CAMERA_MOVE_SPEED; // Forward
     if (IsKeyDown(KEY_S)) movement_this_frame.x += -CAMERA_MOVE_SPEED; // Backward
     if (IsKeyDown(KEY_A)) movement_this_frame.y += -CAMERA_MOVE_SPEED; // Left
@@ -76,6 +103,7 @@ static void update_camera_and_movement() {
    
     UpdateCameraPro(&global_camera,  movement_this_frame, rotation_this_frame, 0.0f);
 
+#if 0
     ///////////////////////////////
     //~ cabarger: Nieve collision checking. 
 
@@ -92,22 +120,22 @@ static void update_camera_and_movement() {
         },
     };
     
-    //- cabarger: Rounding???? 
-    U64 block_start_x = (U64)clamp<S64>((S64)global_camera_bb.min.x * 1.5, 0, 0x0FFFF);
-    U64 block_start_z = (U64)clamp<S64>((S64)global_camera_bb.min.z * 1.5, 0, 0x0FFFF);
+    //- FIX(cabarger): Rounding???? 
+    U64 block_start_x = (U64)clamp<S64>((S64)global_camera_bb.min.x * 1.1, 0, 0x0FFFF);
+    U64 block_start_z = (U64)clamp<S64>((S64)global_camera_bb.min.z * 1.1, 0, 0x0FFFF);
     
     Chunk camera_chunk = World::chunk_at_chunk_cor(
         &global_world, (vec2_u64){
-        .x = block_start_x / CHUNK_W, 
-        .y = block_start_z / CHUNK_W,
+        .x = (block_start_x / CHUNK_W), 
+        .y = (block_start_z / CHUNK_W),
     });
+    
     Model* chunk_model = static_model_from_chunk(&camera_chunk);
     BoundingBox chunk_bb = GetModelBoundingBox(*chunk_model);
-
+    
     if (CheckCollisionBoxes(global_camera_bb, chunk_bb))
-        printf("COLLIDING\n");
-    else 
-        printf("NOT COLLIDING\n");
+        global_camera.position = last_camera_p;
+#endif
 }
 
 static void crafty_update(F32 dt) {
@@ -147,7 +175,18 @@ static void crafty_draw() {
             
             ClearBackground(BLACK);
             BeginMode3D(global_camera);
+
+            rlDisableBackfaceCulling();
+            rlDisableDepthMask();
+
+            DrawModel(global_skybox_model, (Vector3){0, 0, 0}, 1.0f, WHITE);
+
+            rlEnableBackfaceCulling();
+            rlEnableDepthMask();
+          
             
+            DrawGrid(100, 1);
+
             draw_chunk_render();
                     EndMode3D();
             DrawFPS(0, 0);
