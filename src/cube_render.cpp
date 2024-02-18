@@ -8,8 +8,18 @@ static void push_mat_3_buffer(float** buf, U64 buf_len, float matrix[3][3]) {
     float* old_buf = *buf;
     float* new_buf = (float*) malloc((buf_len + 9) * sizeof(float));
 
-    memcpy(new_buf, old_buf, buf_len * sizeof(float));
-    memcpy(&new_buf[buf_len], matrix, 9 * sizeof(float));
+    //- cabarger: Yes, memcpy... But this gracefully handles the 
+    // case where buf_len is 0.
+    for (U64 float_index=0; 
+         float_index < buf_len;
+         ++float_index)
+    {
+        new_buf[float_index] = old_buf[float_index];
+    }
+
+    free(old_buf);
+
+    memcpy(new_buf + buf_len, matrix, 9);
     *buf = new_buf;
 }
 
@@ -21,8 +31,15 @@ static void push_mesh_triangle(Mesh* mesh, float triangle[3][3], float normal[3]
     mesh->vertexCount = mesh->triangleCount * 3;
 
     U8* old_colors = mesh->colors;
-    mesh->colors = (U8*) malloc(mesh->vertexCount * 4);
-    memcpy(mesh->colors, old_colors, (mesh->vertexCount - 3) * 4);
+    mesh->colors = (U8*)malloc(mesh->vertexCount * 4);
+
+    //- cabarger: Ditto, see above memcpy comment.
+    for (U64 byte_index=0; 
+         byte_index < (mesh->vertexCount - 3) * 4;
+         ++byte_index)
+    {
+        mesh->colors[byte_index]  = old_colors[byte_index];
+    }
     memcpy(&mesh->colors[(mesh->vertexCount - 3) * 4], colors, 12);
 }
 
