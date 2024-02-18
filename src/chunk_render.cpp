@@ -11,10 +11,49 @@ static const vec3_s64 z_culling_offset = {0, 0, 1};
 
 static World world;
 
+/*
+    takes in distance from top block
+*/
+static U8 block_tex_height_atlas(U64 dist) {
+    if (dist == 0) { // grass layer
+        return 1;
+    }
+
+    if (dist > 4) { // stone layer
+        return 3;
+    }
+
+    if (dist > 0) { // dirt layer
+        return 2;
+    }
+}
+
+/*
+    returns a block based on height
+*/
+vec3_u8 block_atlas(U8 tex) {
+    if (tex == 1) { // grass
+        return {70, 160, 20};
+    }
+
+    if (tex == 2) { // dirt
+        return {130, 50, 16};
+    }
+
+    if (tex == 3) { // stone
+        return {90, 80, 70};
+    }
+
+    return {255, 0, 0};
+}
+
+/*
+    helps with height map generation
+*/
 void fill_world_col(World* world, U64 x, U64 z, U64 h) {
     for (U64 y = 0; y < h; y++) {
         Block* b = World::block_at(world, {x, y, z});
-        Block::set_value(b, 1);
+        Block::set_value(b, block_tex_height_atlas(h - y - 1));
     }
 }
 
@@ -24,9 +63,8 @@ void render_terrain(World* world) {
             F32 nx = (F32) x / World::block_width_x;
             F32 ny = (F32) y / World::block_width_z;
 
-            F32 hnorm = stb_perlin_noise3(nx, nx, 1.0, 0, 0, 0) * 0.5 + 0.5;
+            F32 hnorm = stb_perlin_noise3_seed(nx, nx, 0.0, 0, 0, 0, 1) * 0.5 + 0.5;
             U64 height = (U64) (hnorm * World::block_width_y);
-
             fill_world_col(world, x, y, height);
         }
     }
@@ -35,34 +73,13 @@ void render_terrain(World* world) {
 static Model static_chunks[WORLD_W_C][WORLD_W_C] = { 0 };
 static bool chunk_updates[WORLD_W_C][WORLD_W_C] = { 1 };
 
-// Generate a simple triangle mesh from code
-static Mesh generate_cubeMesh(void)
-{
-    Mesh mesh = { 0 };
-    mesh.triangleCount = 0;
-
-    vec3_f32 offset = {3, 0, 0};
-
-    push_bot_face(&mesh, offset);
-    push_top_face(&mesh, offset);
-    push_back_face(&mesh, offset);
-    push_front_face(&mesh, offset);
-    push_left_face(&mesh, offset);
-    push_right_face(&mesh, offset);
-
-    // Upload mesh data from CPU (RAM) to GPU (VRAM) memory
-    UploadMesh(&mesh, false);
-
-    return mesh;
-}
-
 bool get_culling_data(Mesh* mesh, World* world, vec3_u64 world_cor, vec3_f32 chunk_cor) {
     vec3_s64 s_world_cor = vec3_u64::cast<S64>(world_cor);
+    Block* current_block = World::block_at(world, world_cor);
 
     /*
         x axis face culling
     */
-
     vec3_s64 left_block_cor  = vec3_s64::sub(s_world_cor, x_culling_offset);
     vec3_s64 right_block_cor = vec3_s64::add(s_world_cor, x_culling_offset);
     U8 left_block_val = 0;
@@ -116,14 +133,17 @@ bool get_culling_data(Mesh* mesh, World* world, vec3_u64 world_cor, vec3_f32 chu
         front_block_val = Block::get_value(block);
     }
 
-    if (left_block_val == 0)  push_left_face(mesh, chunk_cor);
-    if (right_block_val == 0) push_right_face(mesh, chunk_cor);
-    if (bot_block_val == 0)   push_bot_face(mesh, chunk_cor);
-    if (top_block_val == 0)   push_top_face(mesh, chunk_cor);
-    if (back_block_val == 0)  push_back_face(mesh, chunk_cor);
-    if (front_block_val == 0) push_front_face(mesh, chunk_cor);
-    if (left_block_val == 0)  push_left_face(mesh, chunk_cor);
-    if (right_block_val == 0) push_right_face(mesh, chunk_cor);
+    /*
+        handles face culling
+    */
+    if (left_block_val == 0)  push_left_face(mesh, chunk_cor,  block_atlas(Block::get_value(current_block)));
+    if (right_block_val == 0) push_right_face(mesh, chunk_cor, block_atlas(Block::get_value(current_block)));
+    if (bot_block_val == 0)   push_bot_face(mesh, chunk_cor,   block_atlas(Block::get_value(current_block)));
+    if (top_block_val == 0)   push_top_face(mesh, chunk_cor,   block_atlas(Block::get_value(current_block)));
+    if (back_block_val == 0)  push_back_face(mesh, chunk_cor,  block_atlas(Block::get_value(current_block)));
+    if (front_block_val == 0) push_front_face(mesh, chunk_cor, block_atlas(Block::get_value(current_block)));
+    if (left_block_val == 0)  push_left_face(mesh, chunk_cor,  block_atlas(Block::get_value(current_block)));
+    if (right_block_val == 0) push_right_face(mesh, chunk_cor, block_atlas(Block::get_value(current_block)));
 
     return false;
 }

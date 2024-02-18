@@ -45,12 +45,11 @@ static mat3 offset_matrix_vector(float matrix[3][3], vec3_f32 offset) {
 /*
     face generation
 */
-
-void push_bot_face(Mesh* mesh, vec3_f32 offset) {
+void push_bot_face(Mesh* mesh, vec3_f32 offset, vec3_u8 color) {
     U8 colors[3][4] = {
-        {255, 0, 0, 255},
-        {0, 255, 0, 255},
-        {0, 0, 255, 255},
+        {color.x, color.y, color.z, 255},
+        {color.x, color.y, color.z, 255},
+        {color.x, color.y, color.z, 255},
     };
 
     mat3 seg1 = offset_matrix_vector(BotFaceSeg1, offset);
@@ -60,11 +59,11 @@ void push_bot_face(Mesh* mesh, vec3_f32 offset) {
     push_mesh_triangle(mesh, seg2.components, ZeroNormalSeg, colors);
 }
 
-void push_top_face(Mesh* mesh, vec3_f32 offset) {
+void push_top_face(Mesh* mesh, vec3_f32 offset, vec3_u8 color) {
     U8 colors[3][4] = {
-        {255, 0, 0, 255},
-        {255, 0, 0, 255},
-        {0, 0, 255, 255},
+        {color.x, color.y, color.z, 255},
+        {color.x, color.y, color.z, 255},
+        {color.x, color.y, color.z, 255},
     };
 
     mat3 seg1 = offset_matrix_vector(TopFaceSeg1, offset);
@@ -74,11 +73,17 @@ void push_top_face(Mesh* mesh, vec3_f32 offset) {
     push_mesh_triangle(mesh, seg2.components, ZeroNormalSeg, colors);
 }
 
-void push_back_face(Mesh* mesh, vec3_f32 offset) {
+void push_back_face(Mesh* mesh, vec3_f32 offset, vec3_u8 color) {
+    F32 scalar = 0.75;
+
+    U8 cr = (U8) (scalar * (F32) color.x);
+    U8 cg = (U8) (scalar * (F32) color.y);
+    U8 cb = (U8) (scalar * (F32) color.z);
+
     U8 colors[3][4] = {
-        {255, 0, 0, 255},
-        {0, 255, 0, 255},
-        {0, 0, 255, 255},
+        {cr, cg, cb, 255},
+        {cr, cg, cb, 255},
+        {cr, cg, cb, 255},
     };
 
     mat3 seg1 = offset_matrix_vector(BackFaceSeg1, offset);
@@ -88,11 +93,17 @@ void push_back_face(Mesh* mesh, vec3_f32 offset) {
     push_mesh_triangle(mesh, seg2.components, ZeroNormalSeg, colors);
 }
 
-void push_front_face(Mesh* mesh, vec3_f32 offset) {
+void push_front_face(Mesh* mesh, vec3_f32 offset, vec3_u8 color) {
+    F32 scalar = 0.5;
+
+    U8 cr = (U8) (scalar * (F32) color.x);
+    U8 cg = (U8) (scalar * (F32) color.y);
+    U8 cb = (U8) (scalar * (F32) color.z);
+
     U8 colors[3][4] = {
-        {255, 0, 0, 255},
-        {0, 255, 0, 255},
-        {0, 0, 255, 255},
+        {cr, cg, cb, 255},
+        {cr, cg, cb, 255},
+        {cr, cg, cb, 255},
     };
 
     mat3 seg1 = offset_matrix_vector(FontFaceSeg1, offset);
@@ -102,11 +113,17 @@ void push_front_face(Mesh* mesh, vec3_f32 offset) {
     push_mesh_triangle(mesh, seg2.components, ZeroNormalSeg, colors);
 }
 
-void push_left_face(Mesh* mesh, vec3_f32 offset) {
+void push_left_face(Mesh* mesh, vec3_f32 offset, vec3_u8 color) {
+    F32 scalar = 0.75;
+
+    U8 cr = (U8) (scalar * (F32) color.x);
+    U8 cg = (U8) (scalar * (F32) color.y);
+    U8 cb = (U8) (scalar * (F32) color.z);
+
     U8 colors[3][4] = {
-        {255, 0, 0, 255},
-        {0, 255, 0, 255},
-        {0, 0, 255, 255},
+        {cr, cg, cb, 255},
+        {cr, cg, cb, 255},
+        {cr, cg, cb, 255},
     };
 
     mat3 seg1 = offset_matrix_vector(LeftFaceSeg1, offset);
@@ -116,13 +133,18 @@ void push_left_face(Mesh* mesh, vec3_f32 offset) {
     push_mesh_triangle(mesh, seg2.components, ZeroNormalSeg, colors);
 }
 
-void push_right_face(Mesh* mesh, vec3_f32 offset) {
-    U8 colors[3][4] = {
-        {255, 0, 0, 255},
-        {0, 255, 0, 255},
-        {0, 0, 255, 255},
-    };
+void push_right_face(Mesh* mesh, vec3_f32 offset, vec3_u8 color) {
+    F32 scalar = 0.5;
 
+    U8 cr = (U8) (scalar * (F32) color.x);
+    U8 cg = (U8) (scalar * (F32) color.y);
+    U8 cb = (U8) (scalar * (F32) color.z);
+
+    U8 colors[3][4] = {
+        {cr, cg, cb, 255},
+        {cr, cg, cb, 255},
+        {cr, cg, cb, 255},
+    };
     mat3 seg1 = offset_matrix_vector(RightFaceSeg1, offset);
     mat3 seg2 = offset_matrix_vector(RightFaceSeg2, offset);
     
