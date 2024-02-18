@@ -89,7 +89,6 @@ int main(void) {
 
         BeginMode3D(global_camera);
 
-        BeginDrawing();
         ClearBackground(BLACK);
         
         draw();
