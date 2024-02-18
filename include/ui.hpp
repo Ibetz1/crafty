@@ -1,10 +1,16 @@
 #include <stdlib.h>
-
-
+#include <cvec3.hpp>
 
 void create_ui(int screen_width, int screen_height);
 void update_hotbar(int screen_width, int screen_height);
-void draw_hotbar(int screen_width, int screen_height);
+void draw_hotbar(int screen_width, int screen_height, ItemBlock block);
+
+struct ItemBlock
+{
+	vec3_u8 color; // color
+	U8 block_item;  // actual block
+};
+
 
 struct Button
 {
@@ -12,4 +18,5 @@ struct Button
 	int y;
 	int width;
 	int height;
+	ItemBlock block;
 };
