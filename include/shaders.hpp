@@ -21,30 +21,26 @@
 #define MAX_POSTPRO_SHADERS         14
 #define MAX_LIGHTS  1
 
-
-void update_shaders();
+void init_light(Vector3 position, Vector3 target, Color color);
 void init_shaders();
-void deload_shaders();
+void update_shaders();
+
+void draw_lights();
 void begin_shaders();
 void end_shaders();
+void deload_shaders();
+
 Shader get_current_shader();
 Shader get_shader(int i);
-int get_shader_index();
-void draw_lights();
 Shader get_lighting_shader();
-void init_light(Vector3 position, Vector3 target, Color color);
+int get_shader_index();
+
 
 
 typedef enum {
     FX_BASE = 0,
     FX_GRAYSCALE,
     FX_POSTERIZATION,
-    FX_DREAM_VISION,
-    FX_PIXELIZER,
-    FX_CROSS_HATCHING,
-    FX_CROSS_STITCHING,
-    FX_PREDATOR_VIEW,
-    FX_SCANLINES,
     FX_FISHEYE,
     FX_SOBEL,
     FX_BLOOM,
@@ -57,12 +53,6 @@ static const char *postproShaderText[] = {
     "BASE",
     "GRAYSCALE",
     "POSTERIZATION",
-    "DREAM_VISION",
-    "PIXELIZER",
-    "CROSS_HATCHING",
-    "CROSS_STITCHING",
-    "PREDATOR_VIEW",
-    "SCANLINES",
     "FISHEYE",
     "SOBEL",
     "BLOOM",
