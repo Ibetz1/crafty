@@ -9,12 +9,20 @@ Material matDefault;
 Matrix *transforms = (Matrix *)RL_CALLOC(MAX_INSTANCES, sizeof(Matrix));
 Mesh cube;
 
+
 int currentShader;
 int totalLights = 0;
+/*
+ To create shaders
+ Set each material.shader = lighting;
+ Create lights with create_light and pass in required parameters.
 
-// To create shaders
-// Set each material.shader = lighting;
-// Create lights with create_light and pass in required parameters.
+EXAMPLE:
+ Material a;
+ a.shader = get_shader(FX_BLUR);
+ create_light(int type, Vector3 position, Vector3 target, Color color)
+*/
+
 
 void init_shaders()
 {
@@ -83,7 +91,7 @@ void update_shaders(Camera * camera)
 void test_mesh_shaders()
 {
     cube = GenMeshCube(1.0f, 1.0f, 1.0f);
-
+    
     // Define transforms to be uploaded to GPU for instances
     // Translate and rotate cubes randomly
     for (int i = 0; i < MAX_INSTANCES; i++)
