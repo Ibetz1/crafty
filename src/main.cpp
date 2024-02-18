@@ -9,6 +9,8 @@
 extern "C" {
     #include "base_inc.c"
 }
+#include "cube_render.hpp"
+
 
 #define CAMERA_MOUSE_MOVE_SENSITIVITY 0.03f     
 #define CAMERA_MOVE_SPEED             0.09f
@@ -20,6 +22,29 @@ static Camera global_camera = { 0 };
 
 const int screen_width = 800;
 const int screen_height = 450;
+
+Model my_model;
+
+// Generate a simple triangle mesh from code
+static Mesh GenMeshCustom(void)
+{
+    Mesh mesh = { 0 };
+    mesh.triangleCount = 0;
+
+    vec3_f32 offset = {3, 0, 0};
+
+    push_bot_face(&mesh, offset);
+    push_top_face(&mesh, offset);
+    push_back_face(&mesh, offset);
+    push_front_face(&mesh, offset);
+    push_left_face(&mesh, offset);
+    push_right_face(&mesh, offset);
+
+    // Upload mesh data from CPU (RAM) to GPU (VRAM) memory
+    UploadMesh(&mesh, false);
+
+    return mesh;
+}
 
 /*
     on runtime
@@ -42,6 +67,8 @@ static void init() {
     create_light(LIGHT_DIRECTIONAL, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
     // ------- Lighting ---------
     init_chunk_render();
+
+     my_model = LoadModelFromMesh(GenMeshCustom());
 }
 
 static void update_camera_and_movement() {
@@ -63,6 +90,7 @@ static void update_camera_and_movement() {
     UpdateCameraPro(&global_camera,  movement_this_frame, rotation_this_frame, 0.0f);
 }
 
+
 /*
     pre-render pass
 */
@@ -75,7 +103,8 @@ static void update(F32 dt) {
 static void draw() {
     DrawGrid(100, 1);
 
-    draw_chunk_render();
+    // draw_chunk_render();
+    DrawModel(my_model, {0, 0, 0}, 1.0f, WHITE);
 }
 
 int main(void) {

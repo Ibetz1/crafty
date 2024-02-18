@@ -291,4 +291,6 @@ typedef cvec3<U64> vec3_u64;
 
 typedef cvec3<S64> vec3_s64;
 
+typedef cvec3<F32> vec3_f32;
+
 #endif
