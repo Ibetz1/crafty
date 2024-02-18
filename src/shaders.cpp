@@ -48,7 +48,6 @@ void init_shaders()
     // Ambient light ( Can see it in pitch black )
     int ambientLoc = GetShaderLocation(lighting, "ambient");
     SetShaderValue(lighting, ambientLoc, (float[4]){ 0.1f, 0.1f, 0.1f, 1.0f }, SHADER_UNIFORM_VEC4);
-    test_mesh_shaders();
 }
 
 // LIGHT_POINT, LIGHT_DIRECTIONAL
@@ -88,42 +87,9 @@ void update_shaders(Camera * camera)
     else if (currentShader < 0) currentShader = MAX_POSTPRO_SHADERS - 1;
 }
 
-void test_mesh_shaders()
-{
-    cube = GenMeshCube(1.0f, 1.0f, 1.0f);
-    
-    // Define transforms to be uploaded to GPU for instances
-    // Translate and rotate cubes randomly
-    for (int i = 0; i < MAX_INSTANCES; i++)
-    {
-        Matrix translation = MatrixTranslate((float)GetRandomValue(-50, 50), (float)GetRandomValue(-50, 50), (float)GetRandomValue(-50, 50));
-        Vector3 axis = Vector3Normalize((Vector3){ (float)GetRandomValue(0, 360), (float)GetRandomValue(0, 360), (float)GetRandomValue(0, 360) });
-        float angle = (float)GetRandomValue(0, 10)*DEG2RAD;
-        Matrix rotation = MatrixRotate(axis, angle);
-        
-        transforms[i] = MatrixMultiply(rotation, translation);
-    }
-    
-    matInstances = LoadMaterialDefault();
-    matInstances.shader = lighting;
-    matInstances.maps[MATERIAL_MAP_DIFFUSE].color = ORANGE;
-
-    matDefault = LoadMaterialDefault();
-    matDefault.maps[MATERIAL_MAP_DIFFUSE].color = BLUE;
-}
-
 void draw_shaders()
 {
     draw_lights();
-    // Draw cube mesh with default material (BLUE)
-    DrawMesh(cube, matDefault, MatrixTranslate(-10.0f, 0.0f, 0.0f));
-
-    // Draw meshes instanced using material containing instancing shader (RED + lighting),
-    // updated in GPU every frame, so we can animate the different mesh instances
-    DrawMeshInstanced(cube, matInstances, transforms, MAX_INSTANCES);
-
-    // Draw cube mesh with default material (BLUE)
-    DrawMesh(cube, matDefault, MatrixTranslate(10.0f, 0.0f, 0.0f));
 }
 
 // Shader Mode

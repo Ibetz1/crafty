@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "raymath.h"
 
+#include "ui.hpp"
 #include "perlin.hpp"
 #include "shaders.hpp"
 #include "chunk_render.hpp"
@@ -13,6 +14,12 @@ extern "C" {
 #include "cube_render.hpp"
 
 
+enum GameState 
+{
+    GAME_RUNNING = 0,
+    GAME_PAUSED,
+};
+
 #define CAMERA_MOUSE_MOVE_SENSITIVITY 0.03f     
 #define CAMERA_MOVE_SPEED             0.09f
 #define CAMERA_ROTATION_SPEED         0.03f
@@ -20,6 +27,9 @@ extern "C" {
 static World global_world;
 
 static Camera global_camera = { 0 };
+
+global GameState game_state;
+int game_paused = 0;
 
 const int screen_width = 800;
 const int screen_height = 450;
@@ -51,7 +61,7 @@ static Mesh GenMeshCustom(void)
     on runtime
 */
 static void init() {
-
+    
     //- NOTE(cabarger): camera default values...
     global_camera.position = (Vector3){ 0.2f, 0.4f, 0.2f }; 
     global_camera.target = (Vector3){ 0.185f, 0.4f, 0.0f }; // Looking at point
@@ -62,12 +72,14 @@ static void init() {
     /*
         our shit down here
     */
+    game_state = GAME_RUNNING;
     // ------- Lighting --------
     init_shaders();
     create_light(LIGHT_POINT, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
     create_light(LIGHT_DIRECTIONAL, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
     // ------- Lighting ---------
     handle_noise();
+    create_ui(screen_width, screen_height);
     init_chunk_render();
 
      my_model = LoadModelFromMesh(GenMeshCustom());
@@ -97,16 +109,66 @@ static void update_camera_and_movement() {
     pre-render pass
 */
 static void update(F32 dt) {
-    update_camera_and_movement();
-    update_chunk_render(dt);
-    update_shaders(&global_camera);
+    if(IsKeyPressed(KEY_P)) 
+    {
+        game_paused = !game_paused;
+        if (game_paused == 1) game_state = GAME_PAUSED;
+        else {
+            game_state = GAME_RUNNING;
+        }
+    }
+    switch(game_state) {
+        case GAME_RUNNING:
+        {
+            update_camera_and_movement();
+            update_chunk_render(dt);
+            update_shaders(&global_camera);
+            update_hotbar(screen_width, screen_height);
+            break;
+        }
+        case GAME_PAUSED:
+        {
+            break;
+        }
+    }
 }
 
 static void draw() {
-    DrawGrid(100, 1);
+    BeginDrawing();
+    ClearBackground(BLACK);
+    switch(game_state)
+    {
+        case GAME_RUNNING:
+        {
+            BeginMode3D(global_camera);
+            
+            DrawGrid(100, 1);
 
-    // draw_chunk_render();
-    DrawModel(my_model, {0, 0, 0}, 1.0f, WHITE);
+            // draw_chunk_render();
+            DrawModel(my_model, {0, 0, 0}, 1.0f, WHITE);
+            EndMode3D();
+            DrawFPS(0, 0);
+            draw_hotbar(screen_width, screen_height);
+            break;
+        }
+        case GAME_PAUSED:
+        {
+            Rectangle rec = { ((float)screen_width - 100 - 250)/2, (screen_height - 100)/2.0f, (float)400, (float)400 };
+            DrawRectangleRec(rec, Fade(GOLD, 0.6f));
+    
+            DrawText("Press 1 to exit, 2 to leave", screen_width - 500, screen_height - 300, 10, GRAY);
+            if (IsKeyPressed(KEY_ONE))
+            {
+                exit(EXIT_SUCCESS);
+            }
+            else if (IsKeyPressed(KEY_TWO))
+            {
+                game_state = GAME_RUNNING;
+            }
+            break;
+        }
+    }
+    EndDrawing();
 }
 
 int main(void) {
@@ -117,15 +179,8 @@ int main(void) {
     init();
     while (!WindowShouldClose()) {
         update(GetFrameTime());
-
-        BeginMode3D(global_camera);
-
-        ClearBackground(BLACK);
-
         draw();
 
-        EndMode3D();
-        EndDrawing();
     }
     deload_shaders();
     CloseWindow();
