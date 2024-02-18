@@ -40,7 +40,7 @@ static void render_terrain(World* world) {
             F32 ny = ((F32) (y) / (F32) World::block_width_z);
 
             F32 noise = db::perlin(nx, ny) * 0.3 + 0.5;
-                noise += db::perlin(nx * 3, ny * 3) * 0.25;
+                noise += db::perlin(nx * 4, ny * 4) * 0.25;
 
             U64 height = (U64) (noise * World::block_width_y) - 5;
 
