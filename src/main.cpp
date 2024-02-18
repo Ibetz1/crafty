@@ -2,7 +2,7 @@
 #include "raylib.h"
 #include "raymath.h"
 
-#include "shaders.h"
+#include "shaders.hpp"
 #include "chunks.hpp"
 
 extern "C" {
@@ -110,7 +110,7 @@ internal void update(F32 dt) {
    
     UpdateCameraPro(&global_camera,  movement_this_frame, rotation_this_frame, 0.0f);
     float cameraPos[3] = { global_camera.position.x, global_camera.position.y, global_camera.position.z };
-    update_shaders(cameraPos);
+    update_shaders();
 
 }
 
