@@ -98,7 +98,7 @@ static void update_camera_and_movement() {
 }
 
 static void crafty_update(F32 dt) {
-    if (IsKeyPressed(KEY_P)) game_state = (game_state + 1) % 2
+    if (IsKeyPressed(KEY_P)) game_state = GameState(((U8)game_state + 1) % 2);
     switch(game_state) {
         case GAME_RUNNING: {
             handle_window_resize();
