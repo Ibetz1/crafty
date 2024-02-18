@@ -95,7 +95,6 @@ int main(void) {
         draw();
 
         EndMode3D();
-    
         EndDrawing();
     }
     deload_shaders();
