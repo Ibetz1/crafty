@@ -6,7 +6,6 @@
 
 extern "C" {
     #include "base_inc.h"
-    #include "base_inc.c"
 }
 
 //#include "shaders.cpp"
@@ -24,14 +23,11 @@ global Material global_DEBUG_block_material;
 global Model global_DEBUG_block_model;
 
 global Model church;
+global Model cube;
+global Model plane;
 global Texture2D churchTexture;
 global RenderTexture2D target;
-global Material matInstances;
-global Material matDefault;
 
-// Test Mesh for Shaders
-//global Mesh cube;
-//global Matrix *transforms;   // Pre-multiplied transformations passed to rlgl
 
 const int screen_width = 800;
 const int screen_height = 450;
@@ -42,23 +38,19 @@ internal void init() {
     InitWindow(screen_width, screen_height, "AlgoCraft3D");
     SetTargetFPS(60);
     DisableCursor(); // NOTE(cabarger): Also locks the cursor.
-    init_shaders(matInstances, matDefault);
+    init_shaders();
 
-    // Mesh cube = GenMeshCube(1.0f, 1.0f, 1.0f);
-    // Matrix *transforms = (Matrix *)RL_CALLOC(MAX_INSTANCES, sizeof(Matrix));
-    // //Test Matrix
-    // for (int i = 0; i < MAX_INSTANCES; i++)
-    // {
-    //     Matrix translation = MatrixTranslate((float)GetRandomValue(-50, 50), (float)GetRandomValue(-50, 50), (float)GetRandomValue(-50, 50));
-    //     Vector3 axis = Vector3Normalize((Vector3){ (float)GetRandomValue(0, 360), (float)GetRandomValue(0, 360), (float)GetRandomValue(0, 360) });
-    //     float angle = (float)GetRandomValue(0, 10)*DEG2RAD;
-    //     Matrix rotation = MatrixRotate(axis, angle);
-        
-    //     transforms[i] = MatrixMultiply(rotation, translation);
-    // }
     
-    // Test church model
+    // Target for rendering in shader mode
     target = LoadRenderTexture(screen_width, screen_height);
+    // Create light source
+    // v3 position, v3 target, color
+    init_light((Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
+
+    plane = LoadModelFromMesh(GenMeshPlane(10.0f, 10.0f, 3, 3));
+    //cube = LoadModelFromMesh(GenMeshCube(2.0f, 4.0f, 2.0f));
+    plane.materials[0].shader = get_lighting_shader();
+    //cube.materials[0].shader = get_lighting_shader();
 
     church = LoadModel("./resources/church.obj");                 // Load OBJ model
     churchTexture = LoadTexture("./resources/church_diffuse.png"); // Load model texture (diffuse map)
@@ -125,13 +117,11 @@ internal void update(F32 dt) {
 #if SAM_DRAW 
 internal void draw() {
     BeginTextureMode(target);  
-    ClearBackground(RAYWHITE);
+    ClearBackground(BLACK);
 
     BeginMode3D(global_camera);
 
-    // DrawMesh(cube, matDefault, MatrixTranslate(-10.0f, 0.0f, 0.0f));
-    // DrawMeshInstanced(cube, matInstances, transforms, MAX_INSTANCES);
-    // DrawMesh(cube, matDefault, MatrixTranslate(10.0f, 0.0f, 0.0f));
+    draw_lights();
     // Church
     // DrawModel(
     //     global_DEBUG_block_model, 
@@ -139,22 +129,26 @@ internal void draw() {
     //     1.0f, // Scale
     //     BLUE // Tint
     // ); 
+    DrawModel(plane, { 0.0f, 0.0f, 0.0f }, 1.0f, WHITE);   // Draw 3d model with texture
+    //DrawModel(cube, { 0.0f, 0.0f, 0.0f }, 1.0f, WHITE);   // Draw 3d model with texture
     DrawModel(church, { 0.0f, 0.0f, 0.0f }, 0.1f, WHITE);   // Draw 3d model with texture
+
+    //DrawModel(church, { 2.2f, 4.0f, 0.0f }, 1.0f, WHITE);   // Draw 3d model with texture
+
     DrawGrid(10, 1.0f); 
 
     EndMode3D();
     EndTextureMode();
 
     BeginDrawing();
-    ClearBackground(RAYWHITE);
+    ClearBackground(BLACK);
 
     begin_shaders();
-        DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2){ 200, 400 }, WHITE);
-        DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2){ 0, 0 }, WHITE);
+        //DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2){ 5, 5 }, WHITE);
         DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2){ 0, 0 }, WHITE);
     end_shaders();
 
-    // DRAW TEXT over 2d shapes and drawn texture
+    // DRAW TEXT over 2d planes and drawn texture
     DrawRectangle(0, 9, 580, 30, Fade(LIGHTGRAY, 0.7f));
     
     DrawText("(c) Church 3D model by Alberto Cano", screen_width - 200, screen_height - 20, 10, GRAY);
@@ -179,7 +173,6 @@ int main(void) {
     UnloadModel(church);             
     UnloadRenderTexture(target);    
     deload_shaders();
-    // RL_FREE(transforms);
     CloseWindow();
 
     return 0;
