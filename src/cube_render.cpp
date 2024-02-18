@@ -13,12 +13,17 @@ static void push_mat_3_buffer(float** buf, U64 buf_len, float matrix[3][3]) {
     *buf = new_buf;
 }
 
-static void push_mesh_triangle(Mesh* mesh, float triangle[3][3], float normal[3][3]) {
+static void push_mesh_triangle(Mesh* mesh, float triangle[3][3], float normal[3][3], U8 colors[3][4]) {
     push_mat_3_buffer(&mesh->vertices, mesh->triangleCount * 9, triangle);
     push_mat_3_buffer(&mesh->normals,  mesh->triangleCount * 9, normal);
 
     mesh->triangleCount++;
     mesh->vertexCount = mesh->triangleCount * 3;
+
+    U8* old_colors = mesh->colors;
+    mesh->colors = (U8*) malloc(mesh->vertexCount * 4);
+    memcpy(mesh->colors, old_colors, (mesh->vertexCount - 3) * 4);
+    memcpy(&mesh->colors[(mesh->vertexCount - 3) * 4], colors, 12);
 }
 
 struct mat3 {
@@ -42,49 +47,85 @@ static mat3 offset_matrix_vector(float matrix[3][3], vec3_f32 offset) {
 */
 
 void push_bot_face(Mesh* mesh, vec3_f32 offset) {
+    U8 colors[3][4] = {
+        {255, 0, 0, 255},
+        {0, 255, 0, 255},
+        {0, 0, 255, 255},
+    };
+
     mat3 seg1 = offset_matrix_vector(BotFaceSeg1, offset);
     mat3 seg2 = offset_matrix_vector(BotFaceSeg2, offset);
 
-    push_mesh_triangle(mesh, seg1.components, ZeroNormalSeg);
-    push_mesh_triangle(mesh, seg2.components, ZeroNormalSeg);
+    push_mesh_triangle(mesh, seg1.components, ZeroNormalSeg, colors);
+    push_mesh_triangle(mesh, seg2.components, ZeroNormalSeg, colors);
 }
 
 void push_top_face(Mesh* mesh, vec3_f32 offset) {
+    U8 colors[3][4] = {
+        {255, 0, 0, 255},
+        {255, 0, 0, 255},
+        {0, 0, 255, 255},
+    };
+
     mat3 seg1 = offset_matrix_vector(TopFaceSeg1, offset);
     mat3 seg2 = offset_matrix_vector(TopFaceSeg2, offset);
 
-    push_mesh_triangle(mesh, seg1.components, ZeroNormalSeg);
-    push_mesh_triangle(mesh, seg2.components, ZeroNormalSeg);
+    push_mesh_triangle(mesh, seg1.components, ZeroNormalSeg, colors);
+    push_mesh_triangle(mesh, seg2.components, ZeroNormalSeg, colors);
 }
 
 void push_back_face(Mesh* mesh, vec3_f32 offset) {
+    U8 colors[3][4] = {
+        {255, 0, 0, 255},
+        {0, 255, 0, 255},
+        {0, 0, 255, 255},
+    };
+
     mat3 seg1 = offset_matrix_vector(BackFaceSeg1, offset);
     mat3 seg2 = offset_matrix_vector(BackFaceSeg2, offset);
 
-    push_mesh_triangle(mesh, seg1.components, ZeroNormalSeg);
-    push_mesh_triangle(mesh, seg2.components, ZeroNormalSeg);
+    push_mesh_triangle(mesh, seg1.components, ZeroNormalSeg, colors);
+    push_mesh_triangle(mesh, seg2.components, ZeroNormalSeg, colors);
 }
 
 void push_front_face(Mesh* mesh, vec3_f32 offset) {
+    U8 colors[3][4] = {
+        {255, 0, 0, 255},
+        {0, 255, 0, 255},
+        {0, 0, 255, 255},
+    };
+
     mat3 seg1 = offset_matrix_vector(FontFaceSeg1, offset);
     mat3 seg2 = offset_matrix_vector(FontFaceSeg2, offset);
 
-    push_mesh_triangle(mesh, seg1.components, ZeroNormalSeg);
-    push_mesh_triangle(mesh, seg2.components, ZeroNormalSeg);
+    push_mesh_triangle(mesh, seg1.components, ZeroNormalSeg, colors);
+    push_mesh_triangle(mesh, seg2.components, ZeroNormalSeg, colors);
 }
 
 void push_left_face(Mesh* mesh, vec3_f32 offset) {
+    U8 colors[3][4] = {
+        {255, 0, 0, 255},
+        {0, 255, 0, 255},
+        {0, 0, 255, 255},
+    };
+
     mat3 seg1 = offset_matrix_vector(LeftFaceSeg1, offset);
     mat3 seg2 = offset_matrix_vector(LeftFaceSeg2, offset);
 
-    push_mesh_triangle(mesh, seg1.components, ZeroNormalSeg);
-    push_mesh_triangle(mesh, seg2.components, ZeroNormalSeg);
+    push_mesh_triangle(mesh, seg1.components, ZeroNormalSeg, colors);
+    push_mesh_triangle(mesh, seg2.components, ZeroNormalSeg, colors);
 }
 
 void push_right_face(Mesh* mesh, vec3_f32 offset) {
+    U8 colors[3][4] = {
+        {255, 0, 0, 255},
+        {0, 255, 0, 255},
+        {0, 0, 255, 255},
+    };
+
     mat3 seg1 = offset_matrix_vector(RightFaceSeg1, offset);
     mat3 seg2 = offset_matrix_vector(RightFaceSeg2, offset);
     
-    push_mesh_triangle(mesh, seg1.components, ZeroNormalSeg);
-    push_mesh_triangle(mesh, seg2.components, ZeroNormalSeg);
+    push_mesh_triangle(mesh, seg1.components, ZeroNormalSeg, colors);
+    push_mesh_triangle(mesh, seg2.components, ZeroNormalSeg, colors);
 }

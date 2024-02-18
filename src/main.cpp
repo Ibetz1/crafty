@@ -55,7 +55,6 @@ static void init() {
     create_light(LIGHT_POINT, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
     create_light(LIGHT_DIRECTIONAL, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
     // ------- Lighting ---------
-    handle_noise();
     create_ui(screen_width, screen_height);
     init_chunk_render();
 }
