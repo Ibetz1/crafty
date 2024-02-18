@@ -3,9 +3,8 @@
 #include "raymath.h"
 
 #include "shaders.hpp"
-#include "chunks.hpp"
-
-#include "shaders.hpp"
+#include "chunk_render.hpp"
+#include "chunk_loader.hpp"
 
 extern "C" {
     #include "base_inc.c"
@@ -19,9 +18,9 @@ static World global_world;
 
 static Camera global_camera = { 0 };
 
-static Mesh global_DEBUG_block_mesh; 
+static Mesh     global_DEBUG_block_mesh; 
 static Material global_DEBUG_block_material;
-static Model global_DEBUG_block_model;
+static Model    global_DEBUG_block_model;
 
 const int screen_width = 800;
 const int screen_height = 450;
@@ -30,9 +29,6 @@ const int screen_height = 450;
     on runtime
 */
 static void init() {
-    InitWindow(screen_width, screen_height, "AlgoCraft3D");
-    SetTargetFPS(60);
-    DisableCursor(); // NOTE(cabarger): Also locks the cursor.
 
     // Test church model
     global_DEBUG_block_mesh = GenMeshCube(1.0f, 1.0f, 1.0f);                            
@@ -45,10 +41,14 @@ static void init() {
     global_camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };       // Up vector (rotation towards target)
     global_camera.fovy = 45.0f;                             // Field-of-view Y
     global_camera.projection = CAMERA_PERSPECTIVE;          // Projection type
-    Vector3 position = { 0.0f, 0.0f, 0.0f };                // Set model position
+
+    /*
+        our shit down here
+    */
+    init_chunk_render();
 }
 
-static void update_camera_and_movement(F32 dt) {
+static void update_camera_and_movement() {
     Vector2 mouse_pos_delta = GetMouseDelta();
     Vector3 movement_this_frame = Vector3Zero();
     Vector3 rotation_this_frame = Vector3{
@@ -71,30 +71,34 @@ static void update_camera_and_movement(F32 dt) {
     pre-render pass
 */
 static void update(F32 dt) {
-    update_camera_and_movement(dt);
-
-    // update shit here
+    update_camera_and_movement();
+    update_chunk_render(dt);
 }
 
 static void draw() {
-    // draw shit here
+    draw_chunk_render();
+
+    DrawGrid(100, 1);
 }
 
 int main(void) {
-    
+    InitWindow(screen_width, screen_height, "AlgoCraft3D");
+    SetTargetFPS(60);
+    DisableCursor(); // NOTE(cabarger): Also locks the cursor
+
     init();
     while (!WindowShouldClose()) {
         update(GetFrameTime());
 
+        BeginDrawing();
         BeginMode3D(global_camera);
 
-        BeginDrawing();
         ClearBackground(BLACK);
         
         draw();
 
-        EndDrawing();
         EndMode3D();
+        EndDrawing();
     }
     CloseWindow();
 
