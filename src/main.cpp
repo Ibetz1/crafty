@@ -2,7 +2,6 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "ui.hpp"
-#include "shaders.hpp"
 #include "chunk_render.hpp"
 #include "chunk_loader.hpp"
 #include "cube_render.hpp"
@@ -45,11 +44,6 @@ static void crafty_init() {
         our stuff down here
     */
     game_state = GAME_RUNNING;
-    // ------- Lighting --------
-    init_shaders();
-    create_light(LIGHT_POINT, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
-    create_light(LIGHT_DIRECTIONAL, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
-    // ------- Lighting ---------
     create_ui();
     comic_mono_font = LoadFont("resources/ComicMono-Bold.ttf");
     init_chunk_render();
@@ -104,7 +98,6 @@ static void crafty_update(F32 dt) {
             handle_window_resize();
             update_camera_and_movement();
             update_chunk_render(dt);
-            update_shaders(&global_camera);
             update_hotbar(global_screen_width, global_screen_height);
         } break;
         case GAME_PAUSED: break;
