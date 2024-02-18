@@ -1,9 +1,6 @@
 #include "ui.hpp"
 #include <vector>
 
-#define RAYGUI_IMPLEMENTATION
-#include "raygui.h"
-
 std::vector <Button> buttons;
 
 int highlighted = 0;

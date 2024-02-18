@@ -28,6 +28,7 @@ static World global_world;
 static Camera global_camera = { 0 };
 
 global GameState game_state;
+global Font my_font;
 
 const int screen_width = 800;
 const int screen_height = 450;
@@ -54,6 +55,7 @@ static void init() {
     create_light(LIGHT_DIRECTIONAL, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
     // ------- Lighting ---------
     create_ui(screen_width, screen_height);
+    my_font = LoadFont("resources/ComicMono-Bold.ttf");
     init_chunk_render();
 }
 
@@ -128,11 +130,10 @@ static void draw() {
         }
         case GAME_PAUSED:
         {
-            Font my_font = LoadFont("resources/ComicMono-Bold.ttf");
-            char * str = "Press 1 to exit, 2 to leave";
-            Vector2 vec = {screen_width/2.0f - MeasureText(str, 30)/2.0f, screen_height/2.0f};
+            char * exit_str = "Press 1 to exit, 2 to leave";
+            Vector2 vec = {screen_width/2.0f - MeasureText(exit_str, 30)/2.0f, screen_height/2.0f};
 
-            DrawTextEx(my_font, str, vec, 30, 1, RED);
+            DrawTextEx(my_font, exit_str, vec, 30, 1, RED);
             if (IsKeyPressed(KEY_ONE))
             {
                 exit(EXIT_SUCCESS);
