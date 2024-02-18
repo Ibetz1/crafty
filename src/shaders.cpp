@@ -1,7 +1,7 @@
 #include "shaders.hpp"
 
 Shader shaders[MAX_POSTPRO_SHADERS] = { 0 };
-Light lights[MAX_LIGHT] = { 0 };
+Light lights[MAX_LIGHTS] = { 0 };
 Shader lighting;
 
 int currentShader;
@@ -49,7 +49,7 @@ void update_shaders()
 {
     // Lights
     if (IsKeyPressed(KEY_Y)) { lights[0].enabled = !lights[0].enabled; }
-    for (int i = 0; i < MAX_LIGHT; i++) UpdateLightValues(lighting, lights[i]);
+    for (int i = 0; i < MAX_LIGHTS; i++) UpdateLightValues(lighting, lights[i]);
     
     // Change post processing shader
     if (IsKeyPressed(KEY_J)) currentShader++;
