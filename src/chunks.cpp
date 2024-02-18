@@ -2,10 +2,8 @@
 //! chunks.cpp by Ian Betz
 //! created to manage world data
 
-extern "C" {
-    #include "base_inc.h"
-    #include "base_inc.c"
-}
+#include "base_inc.h"
+
 
 #include <stdio.h>
 #include <math.h>

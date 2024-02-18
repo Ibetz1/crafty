@@ -19,7 +19,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
-    exe.addCSourceFiles(&.{"src/main.cpp", "src/shaders.cpp"}, &.{});
+    exe.addCSourceFiles(&.{"src/main.cpp", "src/shaders.cpp", "src/rlights.cpp",}, &.{});
     exe.addCSourceFiles(&.{"src/chunks.cpp"}, &.{});
     exe.linkLibCpp();
     exe.linkLibC();
