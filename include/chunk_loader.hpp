@@ -1,11 +1,12 @@
 //! date: 2/17/24
-//! chunks.hpp by Ian Betz
+//! chunk_loader.hpp by Ian Betz
 //! api layer for world chunk data management 
 
 #ifndef _CHUNK_HPP
 #define _CHUNK_HPP
 
 #include <math.h>
+#include "cvec3.hpp"
 
 extern "C" {
     #include "base_types.h"
@@ -19,6 +20,11 @@ extern "C" {
 
 // world width in blocks
 #define WORLD_W_B WORLD_W_C * CHUNK_W
+
+// predefs
+struct Block;
+struct Chunk;
+struct World;
 
 /*
     contains block data
@@ -41,13 +47,10 @@ struct Chunk {
     static const U64 width_blocks_y = CHUNK_H;
     static const U64 width_blocks_z = CHUNK_W;
 
-    U64 x_cor; // x coord in chunk space
-    U64 z_cor; // y coord in chunk space
-    Block* base_ptr; // ptr to bottom left block
+    vec2_u64 pos;
+    World* world;
 
-    static Block* block_at(Chunk* chunk, U64 x, U64 y, U64 z);
-
-    static void iterate(Chunk chunk, void (*iter)(Chunk chunk, U64 x, U64 y, U64 z));
+    static void iterate(Chunk chunk, void (*iter)(Chunk chunk, vec3_u64 wpos));
 };
 
 /*
@@ -79,19 +82,19 @@ struct World {
         returns a pointer to a block at some block coorinates
         x, y, z are in world coordinates
     */
-    static Block* block_at(World* world, U64 x, U64 y, U64 z);
+    static Block* block_at(World* world, vec3_u64 pos);
 
     /*
         returns a chunk that a block is inside of
         x, y are in world coordinates
     */
-    static Chunk  chunk_at_block_cor(World* world, U64 x, U64 z);
+    static Chunk  chunk_at_block_cor(World* world, vec2_u64 pos);
     
     /*
         returns a chunk
         x, y are in chunk coordinates
     */
-    static Chunk chunk_at_chunk_cor(World* world, U64 x, U64 z);
+    static Chunk chunk_at_chunk_cor(World* world, vec2_u64 pos);
 
     // pointer to beginning of world blocks
     Block* base_ptr;

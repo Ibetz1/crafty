@@ -18,10 +18,6 @@ static World global_world;
 
 static Camera global_camera = { 0 };
 
-static Mesh     global_DEBUG_block_mesh; 
-static Material global_DEBUG_block_material;
-static Model    global_DEBUG_block_model;
-
 const int screen_width = 800;
 const int screen_height = 450;
 
@@ -30,11 +26,6 @@ const int screen_height = 450;
 */
 static void init() {
 
-    // Test church model
-    global_DEBUG_block_mesh = GenMeshCube(1.0f, 1.0f, 1.0f);                            
-    global_DEBUG_block_material = LoadMaterialDefault();
-    global_DEBUG_block_model = LoadModelFromMesh(global_DEBUG_block_mesh);
-    
     //- NOTE(cabarger): camera default values...
     global_camera.position = (Vector3){ 0.2f, 0.4f, 0.2f }; 
     global_camera.target = (Vector3){ 0.185f, 0.4f, 0.0f }; // Looking at point

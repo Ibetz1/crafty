@@ -4,21 +4,16 @@
 
 #include "base_inc.h"
 
-
 #include <stdio.h>
 #include <math.h>
 #include "chunk_loader.hpp"
-
-template <typename T>
-T clamp(T val, T min, T max) {
-    return (T) fmin(fmax(val, min), max);
-}
+#include "cvec3.hpp"
 
 /*
     compute 1D coords from 3D based on chunk dimensions
 */
-inline U64 compute_index_3D(U64 x, U64 y, U64 z, U64 w, U64 h, U64 d) {
-    return clamp<U64>((x + z * w + y * w * d) - 1, 0, (w * h * d) - 1);
+inline U64 compute_index_3D(vec3_u64 pos, U64 w, U64 h, U64 d) {
+    return clamp<U64>((pos.x + pos.z * w + pos.y * w * d) - 1, 0, (w * h * d) - 1);
 }
 
 /*
@@ -33,37 +28,40 @@ World World::alloc_chunks() {
 }
 
 // get block in world coords
-Block* World::block_at(World* world, U64 x, U64 y, U64 z) {
-    x = clamp<F64>(x, 0, block_width_x);
-    y = clamp<F64>(y, 0, block_width_y);
-    z = clamp<F64>(z, 0, block_width_z);
+Block* World::block_at(World* world, vec3_u64 pos) {
+    pos = vec3_u64::vclamp(pos, {0, 0, 0}, {block_width_x, block_width_y, block_width_z});
 
-    U64 index = compute_index_3D(x, y, z, block_width_x, block_width_y, block_width_z);
+    U64 index = compute_index_3D(pos, block_width_x, block_width_y, block_width_z);
 
     return world->base_ptr + index;
 }
 
 // get a chunk from some world coordinates
-Chunk World::chunk_at_block_cor(World* world, U64 x, U64 z) {
-    U64 xnorm = floor((clamp<F64>(x, 0, block_width_x) / Chunk::width_blocks_x)) * Chunk::width_blocks_x;
-    U64 znorm = floor((clamp<F64>(z, 0, block_width_z) / Chunk::width_blocks_z)) * Chunk::width_blocks_z;
+Chunk World::chunk_at_block_cor(World* world, vec2_u64 pos) {
+    U64 xnorm = floor((clamp<F64>(pos.x, 0, block_width_x) / Chunk::width_blocks_x)) * Chunk::width_blocks_x;
+    U64 znorm = floor((clamp<F64>(pos.y, 0, block_width_z) / Chunk::width_blocks_z)) * Chunk::width_blocks_z;
 
-    U64 index = compute_index_3D(xnorm, 0, znorm, block_width_x, block_width_y, block_width_z);
+    U64 index = compute_index_3D({xnorm, 0, znorm}, block_width_x, block_width_y, block_width_z);
 
     return (Chunk) {
-        .base_ptr = world->base_ptr + index,
+        .pos = {xnorm, znorm},
+        .world = world,
     };
 }
 
 // get chunk from chunk space coords
-Chunk World::chunk_at_chunk_cor(World* world, U64 x, U64 z) {
-    x = clamp<U64>(x, 0, chunk_width_x) * Chunk::width_blocks_x;
-    z = clamp<U64>(z, 0, chunk_width_y) * Chunk::width_blocks_y;
+Chunk World::chunk_at_chunk_cor(World* world, vec2_u64 pos) {
+    vec3_u64 world_cor = {
+        clamp<U64>(pos.x, 0, chunk_width_x) * Chunk::width_blocks_x,
+        block_width_z,
+        clamp<U64>(pos.y, 0, chunk_width_y) * Chunk::width_blocks_y,
+    };
 
-    U64 index = compute_index_3D(x, block_width_z, z, block_width_x, block_width_y, block_width_z);
+    U64 index = compute_index_3D(world_cor, block_width_x, block_width_y, block_width_z);
 
     return (Chunk) {
-        .base_ptr = world->base_ptr + index,
+        .pos = pos,
+        .world = world,
     };
 }
 
@@ -71,23 +69,17 @@ Chunk World::chunk_at_chunk_cor(World* world, U64 x, U64 z) {
     chunk operations
 */
 
-// get a pointer to a block inside of a chunk
-Block* Chunk::block_at(Chunk* space, U64 x, U64 y, U64 z) {
-    x = clamp<U64>(x, 0, width_blocks_x);
-    y = clamp<U64>(y, 0, width_blocks_y);
-    z = clamp<U64>(z, 0, width_blocks_z);
-
-    U64 index = compute_index_3D(x, y, z, width_blocks_x, width_blocks_y, width_blocks_z);
-
-    return space->base_ptr + index;
-}
-
 // apply an iterator to a chunk
-void Chunk::iterate(Chunk chunk, void (*iter)(Chunk chunk, U64 x, U64 y, U64 z)) {
+void Chunk::iterate(Chunk chunk, void (*iter)(Chunk chunk, vec3_u64 wpos)) {
     for (U64 x = 0; x < Chunk::width_blocks_x; x++) {
         for (U64 y = 0; y < Chunk::width_blocks_y; y++) {
             for (U64 z = 0; z < Chunk::width_blocks_z; z++) {
-                iter(chunk, x, y, z);
+                vec3_u64 cor = {
+                    x + (chunk.pos.x * Chunk::width_blocks_x), 
+                    y,
+                    z + (chunk.pos.y * Chunk::width_blocks_z) 
+                };
+                iter(chunk, cor);
             }
         }
     }
