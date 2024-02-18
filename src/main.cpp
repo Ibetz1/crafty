@@ -17,7 +17,7 @@ enum GameState
 
 static World global_world;
 static Camera global_camera = { 0 };
-static Rectangle global_camera_hitbox = { 0 };
+static BoundingBox global_camera_bb = { 0 };
 
 static GameState game_state;
 static Font comic_mono_font;
@@ -41,11 +41,7 @@ static void crafty_init() {
     global_camera.fovy = 45.0f;                             // Field-of-view Y
     global_camera.projection = CAMERA_PERSPECTIVE;          // Projection type
 
-    /*
-        our stuff down here
-    */
     game_state = GAME_RUNNING;
-    // ------- Lighting --------
     init_shaders();
     create_light(LIGHT_POINT, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
     create_light(LIGHT_DIRECTIONAL, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
@@ -67,8 +63,7 @@ static void update_camera_and_movement() {
 #define CAMERA_MOUSE_MOVE_SENSITIVITY 0.03f     
 #define CAMERA_MOVE_SPEED             0.09f
 #define CAMERA_ROTATION_SPEED         0.03f
-#define CAMERA_WIDTH                  0.25f
-#define CAMERA_HEIGHT                 0.25f
+#define CAMERA_DIM                    0.25f
 
     Vector2 mouse_pos_delta = GetMouseDelta();
     Vector3 movement_this_frame = Vector3Zero();
@@ -87,14 +82,38 @@ static void update_camera_and_movement() {
    
     UpdateCameraPro(&global_camera,  movement_this_frame, rotation_this_frame, 0.0f);
 
-    global_camera_hitbox = (Rectangle){
-        .x = global_camera.position.x - CAMERA_WIDTH / 2, 
-        .y = global_camera.position.y - CAMERA_HEIGHT / 2,
-        .width = CAMERA_WIDTH, 
-        .height = CAMERA_HEIGHT,
-    };
+    ///////////////////////////////
+    //~ cabarger: Nieve collision checking. 
 
-    //- cabarger: Check for collisions around camera
+    global_camera_bb = (BoundingBox){
+        .min = (Vector3){
+            .x = global_camera.position.x - (F32)CAMERA_DIM / 2.0f, 
+            .y = global_camera.position.y - (F32)CAMERA_DIM / 2.0f,
+            .z = global_camera.position.z - (F32)CAMERA_DIM / 2.0f,
+        },
+        .max = (Vector3){
+            .x = global_camera.position.x + (F32)CAMERA_DIM / 2.0f, 
+            .y = global_camera.position.y + (F32)CAMERA_DIM / 2.0f,
+            .z = global_camera.position.z + (F32)CAMERA_DIM / 2.0f,
+        },
+    };
+    
+    //- cabarger: Rounding???? 
+    U64 block_start_x = (U64)clamp<S64>((S64)global_camera_bb.min.x * 1.5, 0, 0x0FFFF);
+    U64 block_start_z = (U64)clamp<S64>((S64)global_camera_bb.min.z * 1.5, 0, 0x0FFFF);
+    
+    Chunk camera_chunk = World::chunk_at_chunk_cor(
+        &global_world, (vec2_u64){
+        .x = block_start_x / CHUNK_W, 
+        .y = block_start_z / CHUNK_W,
+    });
+    Model* chunk_model = static_model_from_chunk(&camera_chunk);
+    BoundingBox chunk_bb = GetModelBoundingBox(*chunk_model);
+
+    if (CheckCollisionBoxes(global_camera_bb, chunk_bb))
+        printf("COLLIDING\n");
+    else 
+        printf("NOT COLLIDING\n");
 }
 
 static void crafty_update(F32 dt) {
