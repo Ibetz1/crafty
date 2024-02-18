@@ -34,29 +34,6 @@ int game_paused = 0;
 const int screen_width = 800;
 const int screen_height = 450;
 
-Model my_model;
-
-// Generate a simple triangle mesh from code
-static Mesh GenMeshCustom(void)
-{
-    Mesh mesh = { 0 };
-    mesh.triangleCount = 0;
-
-    vec3_f32 offset = {3, 0, 0};
-
-    push_bot_face(&mesh, offset);
-    push_top_face(&mesh, offset);
-    push_back_face(&mesh, offset);
-    push_front_face(&mesh, offset);
-    push_left_face(&mesh, offset);
-    push_right_face(&mesh, offset);
-
-    // Upload mesh data from CPU (RAM) to GPU (VRAM) memory
-    UploadMesh(&mesh, false);
-
-    return mesh;
-}
-
 /*
     on runtime
 */
@@ -81,8 +58,6 @@ static void init() {
     handle_noise();
     create_ui(screen_width, screen_height);
     init_chunk_render();
-
-     my_model = LoadModelFromMesh(GenMeshCustom());
 }
 
 static void update_camera_and_movement() {
@@ -144,9 +119,8 @@ static void draw() {
             
             DrawGrid(100, 1);
 
-            // draw_chunk_render();
-            DrawModel(my_model, {0, 0, 0}, 1.0f, WHITE);
-            EndMode3D();
+            draw_chunk_render();
+                    EndMode3D();
             DrawFPS(0, 0);
             draw_hotbar(screen_width, screen_height);
             break;
