@@ -101,17 +101,17 @@ static float RightFaceSeg2[3][3] = {
 };
 
 static float ZeroNormalSeg[3][3] = {
-    {0, 0, 0},
-    {0, 0, 0},
-    {0, 0, 0},
+    {0, 1, 0},
+    {0, 1, 0},
+    {0, 1, 0},
 };
 
 // cube building functions
-void push_bot_face  (Mesh* mesh, vec3_f32 offset, vec3_u8 color);
-void push_top_face  (Mesh* mesh, vec3_f32 offset, vec3_u8 color);
-void push_back_face (Mesh* mesh, vec3_f32 offset, vec3_u8 color);
-void push_front_face(Mesh* mesh, vec3_f32 offset, vec3_u8 color);
-void push_left_face (Mesh* mesh, vec3_f32 offset, vec3_u8 color);
-void push_right_face(Mesh* mesh, vec3_f32 offset, vec3_u8 color);
+void push_bot_face  (Mesh* mesh, vec3_f32 offset, vec3_u8 color, U8 alpha);
+void push_top_face  (Mesh* mesh, vec3_f32 offset, vec3_u8 color, U8 alpha);
+void push_back_face (Mesh* mesh, vec3_f32 offset, vec3_u8 color, U8 alpha);
+void push_front_face(Mesh* mesh, vec3_f32 offset, vec3_u8 color, U8 alpha);
+void push_left_face (Mesh* mesh, vec3_f32 offset, vec3_u8 color, U8 alpha);
+void push_right_face(Mesh* mesh, vec3_f32 offset, vec3_u8 color, U8 alpha);
 
 #endif

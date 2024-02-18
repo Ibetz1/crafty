@@ -118,8 +118,6 @@ static void crafty_draw() {
             ClearBackground(BLACK);
             BeginMode3D(global_camera);
             
-            DrawGrid(100, 1);
-
             draw_chunk_render();
                     EndMode3D();
             DrawFPS(0, 0);

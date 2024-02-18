@@ -29,7 +29,7 @@ World World::alloc_chunks() {
 
 // get block in world coords
 Block* World::block_at(World* world, vec3_u64 pos) {
-    pos = vec3_u64::vclamp(pos, {0, 0, 0}, {block_width_x, block_width_y, block_width_z});
+    // pos = vec3_u64::vclamp(pos, {0, 0, 0}, {block_width_x, block_width_y, block_width_z});
 
     U64 index = compute_index_3D(pos, block_width_x, block_width_y, block_width_z);
 
