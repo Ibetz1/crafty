@@ -59,7 +59,7 @@ static void crafty_init() {
     UnloadImage(skybox_img);
         
     //- NOTE(cabarger): camera default values...
-    global_camera.position = (Vector3){ 0.2f, CHUNK_W*3, 0.2f }; 
+    global_camera.position = (Vector3){ CHUNK_W*3, CHUNK_W*3, CHUNK_W*3 }; 
     global_camera.target = (Vector3){ 0.185f, 0.4f, 0.0f }; // Looking at point
     global_camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };       // Up vector (rotation towards target)
     global_camera.fovy = 45.0f;                             // Field-of-view Y
@@ -152,7 +152,6 @@ static void crafty_update(F32 dt) {
 
 bool chunks_drawn = false;
 static void crafty_draw() {
-
     /*
         loading screen
     */
@@ -183,9 +182,6 @@ static void crafty_draw() {
 
             rlEnableBackfaceCulling();
             rlEnableDepthMask();
-          
-            
-            DrawGrid(100, 1);
 
             draw_chunk_render();
                     EndMode3D();
