@@ -5,11 +5,14 @@
 #include "cvec3.hpp"
 
 static void push_mat_3_buffer(float** buf, U64 buf_len, float matrix[3][3]) {
-    float* old_buf = *buf;
-    float* new_buf = (float*) malloc((buf_len + 9) * sizeof(float));
+    F32* old_buf = *buf;
+    F32* new_buf = (F32*)malloc((buf_len + 9) * sizeof(F32));
 
-    memcpy(new_buf, old_buf, buf_len * sizeof(float));
-    memcpy(&new_buf[buf_len], matrix, 9 * sizeof(float));
+    memcpy((U8*)new_buf, (U8*)old_buf, buf_len);
+
+    free(old_buf);
+
+    memcpy(&new_buf[buf_len], matrix, 9 * sizeof(F32));
     *buf = new_buf;
 }
 
@@ -21,9 +24,12 @@ static void push_mesh_triangle(Mesh* mesh, float triangle[3][3], float normal[3]
     mesh->vertexCount = mesh->triangleCount * 3;
 
     U8* old_colors = mesh->colors;
-    mesh->colors = (U8*) malloc(mesh->vertexCount * 4);
+    mesh->colors = (U8*)malloc(mesh->vertexCount * 4);
+    
     memcpy(mesh->colors, old_colors, (mesh->vertexCount - 3) * 4);
+
     memcpy(&mesh->colors[(mesh->vertexCount - 3) * 4], colors, 12);
+
 }
 
 struct mat3 {
