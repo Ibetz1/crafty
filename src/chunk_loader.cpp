@@ -38,8 +38,8 @@ Block* World::block_at(World* world, vec3_u64 pos) {
 
 // get a chunk from some world coordinates
 Chunk World::chunk_at_block_cor(World* world, vec2_u64 pos) {
-    U64 xnorm = floor((clamp<F64>(pos.x, 0, block_width_x) / Chunk::width_blocks_x)) * Chunk::width_blocks_x;
-    U64 znorm = floor((clamp<F64>(pos.y, 0, block_width_z) / Chunk::width_blocks_z)) * Chunk::width_blocks_z;
+    U64 xnorm = floor((clamp<F64>(pos.x, 0, block_width_x - 1) / Chunk::width_blocks_x)) * Chunk::width_blocks_x;
+    U64 znorm = floor((clamp<F64>(pos.y, 0, block_width_z - 1) / Chunk::width_blocks_z)) * Chunk::width_blocks_z;
 
     U64 index = compute_index_3D({xnorm, 0, znorm}, block_width_x, block_width_y, block_width_z);
 
@@ -52,9 +52,9 @@ Chunk World::chunk_at_block_cor(World* world, vec2_u64 pos) {
 // get chunk from chunk space coords
 Chunk World::chunk_at_chunk_cor(World* world, vec2_u64 pos) {
     vec3_u64 world_cor = {
-        clamp<U64>(pos.x, 0, chunk_width_x) * Chunk::width_blocks_x,
+        pos.x * Chunk::width_blocks_x,
         block_width_z,
-        clamp<U64>(pos.y, 0, chunk_width_y) * Chunk::width_blocks_y,
+        pos.y * Chunk::width_blocks_y,
     };
 
     U64 index = compute_index_3D(world_cor, block_width_x, block_width_y, block_width_z);

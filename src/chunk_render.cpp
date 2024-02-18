@@ -120,8 +120,15 @@ void render_terrain(World* world) {
     }
 }
 
+static Model nil_chunk = {0}; //- TODO(cabarger): Mark this read only.
 static Model static_chunks[WORLD_W_C][WORLD_W_C] = { 0 };
 static bool chunk_updates[WORLD_W_C][WORLD_W_C] = { 1 };
+
+Model* static_model_from_chunk(Chunk* chunk) {
+    if (chunk->pos.x < WORLD_W_C && chunk->pos.y < WORLD_W_C)
+        return &static_chunks[chunk->pos.x][chunk->pos.y];
+    return &nil_chunk;
+}
 
 bool get_culling_data(Mesh* mesh, World* world, vec3_u64 world_cor, vec3_f32 chunk_cor) {
     vec3_s64 s_world_cor = vec3_u64::cast<S64>(world_cor);
