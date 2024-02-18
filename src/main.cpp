@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "raymath.h"
 
+#include "perlin.hpp"
 #include "shaders.hpp"
 #include "chunk_render.hpp"
 #include "chunk_loader.hpp"
@@ -41,6 +42,7 @@ static void init() {
     create_light(LIGHT_POINT, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
     create_light(LIGHT_DIRECTIONAL, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
     // ------- Lighting ---------
+    handle_noise();
     init_chunk_render();
 }
 
@@ -91,7 +93,7 @@ int main(void) {
 
         BeginDrawing();
         ClearBackground(BLACK);
-        
+
         draw();
 
         EndMode3D();
