@@ -3,7 +3,7 @@
 #include "raymath.h"
 #include "cvec3.hpp"
 #include "cube_render.hpp"
-#include "stb_perlin.h"
+#include "db_perlin.hpp"
 
 static const vec3_s64 x_culling_offset = {1, 0, 0};
 static const vec3_s64 y_culling_offset = {0, 1, 0};
@@ -11,65 +11,110 @@ static const vec3_s64 z_culling_offset = {0, 0, 1};
 
 static World world;
 
+
+static U64 water_level = 20;
+static U64 sand_level = water_level + 1;
+
+typedef U8 block_ids;
+enum {
+    block_ids_AIR    = 0,
+    block_ids_GRASS  = 1,
+    block_ids_DIRT   = 2,
+    block_ids_STONE  = 3,
+    block_ids_SAND   = 4,
+    block_ids_WATER  = 5,
+};
+
 /*
     takes in distance from top block
 */
-static U8 block_tex_height_atlas(U64 dist) {
-    if (dist == 0) { // grass layer
-        return 1;
+static U8 block_tex_height_map(U64 y, U64 h) {
+    
+    // face blocks
+    if (h - y == 1) {
+        if (h < sand_level + 2) {
+            return block_ids_SAND; // sand
+        } else {
+            return block_ids_GRASS; // grass
+        }
     }
-
-    if (dist > 4) { // stone layer
-        return 3;
-    }
-
-    if (dist > 0) { // dirt layer
-        return 2;
+    else if (h - y < 8) {
+        return block_ids_DIRT; // dirt
+    } else {
+        return block_ids_STONE; // stone
     }
 }
 
 /*
     returns a block based on height
 */
-vec3_u8 block_atlas(U8 tex) {
-    if (tex == 1) { // grass
+vec3_u8 block_tex_color_map(U8 tex) {
+    if (tex == block_ids_GRASS) { // grass
         return {70, 160, 20};
     }
 
-    if (tex == 2) { // dirt
+    if (tex == block_ids_DIRT) { // dirt
         return {130, 50, 16};
     }
 
-    if (tex == 3) { // stone
+    if (tex == block_ids_STONE) { // stone
         return {90, 80, 70};
+    }
+
+    if (tex == block_ids_SAND) {
+        return {200, 180, 80};
+    }
+
+    if (tex == block_ids_WATER) {
+        return {30, 70, 150};
     }
 
     return {255, 0, 0};
 }
 
 /*
+    detmines block transparency
+*/
+U8 block_tex_alpha_map(U8 tex) {
+    if (tex == block_ids_AIR) return 0;
+    if (tex == block_ids_WATER) return 128;
+
+    return 255;
+}
+
+/*
     helps with height map generation
 */
 void fill_world_col(World* world, U64 x, U64 z, U64 h) {
-    for (U64 y = 0; y < h; y++) {
-        Block* b = World::block_at(world, {x, y, z});
-        Block::set_value(b, block_tex_height_atlas(h - y - 1));
+    for (U64 y = 0; y < World::block_width_y; y++) {
+        if (y < h) {
+            Block* b = World::block_at(world, {x, y, z});
+            Block::set_value(b, block_tex_height_map(y, h));
+        } 
+        else if (y < water_level) {
+            Block* b = World::block_at(world, {x, y, z});
+            Block::set_value(b, block_ids_WATER);
+        }
+
+        if (y > h && y > water_level) break;
     }
 }
 
-static const int octaves = 6;
-static const float lacunarity = 2.0f;
-static const float gain = 0.1f;
-static const float offset = 1.0f;
-
+/*
+    fills terrain based on noise
+*/
 void render_terrain(World* world) {
     for (U64 x = 0; x < World::block_width_x; x++) {
         for (U64 y = 0; y < World::block_width_z; y++) {
-            F32 nx = (F32) x / World::block_width_x;
-            F32 ny = (F32) y / World::block_width_z;
+            F32 nx = ((F32) (x) / (F32) World::block_width_x);
+            F32 ny = ((F32) (y) / (F32) World::block_width_z);
 
-            F32 hnorm = stb_perlin_ridge_noise3(nx, ny, 0.0f, lacunarity, gain,offset, octaves);
-            U64 height = (U64) (hnorm * World::block_width_y);
+            F32 noise = db::perlin(nx, ny) * 0.3 + 0.5;
+            noise += db::perlin(nx * 8, ny * 8) * 0.25;
+            // noise += db::perlin(nx / 2, ny / 2) + 0.2;
+
+            U64 height = (U64) (noise * World::block_width_y) - 5;
+
             fill_world_col(world, x, y, height);
         }
     }
@@ -92,12 +137,12 @@ bool get_culling_data(Mesh* mesh, World* world, vec3_u64 world_cor, vec3_f32 chu
 
     if (!(left_block_cor.x < 0)) {
         Block* block = World::block_at(world, vec3_s64::cast<U64>(left_block_cor));
-        left_block_val = Block::get_value(block);
+        left_block_val = block_tex_alpha_map(Block::get_value(block));
     }
 
     if (!(right_block_cor.x >= World::block_width_x)) {
         Block* block = World::block_at(world, vec3_s64::cast<U64>(right_block_cor));
-        right_block_val = Block::get_value(block);
+        right_block_val = block_tex_alpha_map(Block::get_value(block));
     }
 
     /*
@@ -111,12 +156,12 @@ bool get_culling_data(Mesh* mesh, World* world, vec3_u64 world_cor, vec3_f32 chu
 
     if (!(bot_block_cor.y < 0)) {
         Block* block = World::block_at(world, vec3_s64::cast<U64>(bot_block_cor));
-        bot_block_val = Block::get_value(block);
+        bot_block_val = block_tex_alpha_map(Block::get_value(block));
     }
 
     if (!(top_block_cor.y >= World::block_width_y)) {
         Block* block = World::block_at(world, vec3_s64::cast<U64>(top_block_cor));
-        top_block_val = Block::get_value(block);
+        top_block_val = block_tex_alpha_map(Block::get_value(block));
     }
 
     /*
@@ -130,25 +175,29 @@ bool get_culling_data(Mesh* mesh, World* world, vec3_u64 world_cor, vec3_f32 chu
 
     if (!(back_block_cor.z < 0)) {
         Block* block = World::block_at(world, vec3_s64::cast<U64>(back_block_cor));
-        back_block_val = Block::get_value(block);
+        back_block_val = block_tex_alpha_map(Block::get_value(block));
     }
 
     if (!(front_block_cor.z >= World::block_width_z)) {
         Block* block = World::block_at(world, vec3_s64::cast<U64>(front_block_cor));
-        front_block_val = Block::get_value(block);
+        front_block_val = block_tex_alpha_map(Block::get_value(block));
     }
 
     /*
         handles face culling
     */
-    if (left_block_val == 0)  push_left_face(mesh, chunk_cor,  block_atlas(Block::get_value(current_block)));
-    if (right_block_val == 0) push_right_face(mesh, chunk_cor, block_atlas(Block::get_value(current_block)));
-    if (bot_block_val == 0)   push_bot_face(mesh, chunk_cor,   block_atlas(Block::get_value(current_block)));
-    if (top_block_val == 0)   push_top_face(mesh, chunk_cor,   block_atlas(Block::get_value(current_block)));
-    if (back_block_val == 0)  push_back_face(mesh, chunk_cor,  block_atlas(Block::get_value(current_block)));
-    if (front_block_val == 0) push_front_face(mesh, chunk_cor, block_atlas(Block::get_value(current_block)));
-    if (left_block_val == 0)  push_left_face(mesh, chunk_cor,  block_atlas(Block::get_value(current_block)));
-    if (right_block_val == 0) push_right_face(mesh, chunk_cor, block_atlas(Block::get_value(current_block)));
+    U8 blockTex = Block::get_value(current_block);
+    vec3_u8 texColor = block_tex_color_map(blockTex);
+    U8 alpha = block_tex_alpha_map(blockTex);
+
+    if (left_block_val  < alpha) push_left_face (mesh, chunk_cor, texColor, alpha);
+    if (right_block_val < alpha) push_right_face(mesh, chunk_cor, texColor, alpha);
+    if (bot_block_val   < alpha) push_bot_face  (mesh, chunk_cor, texColor, alpha);
+    if (top_block_val   < alpha) push_top_face  (mesh, chunk_cor, texColor, alpha);
+    if (back_block_val  < alpha) push_back_face (mesh, chunk_cor, texColor, alpha);
+    if (front_block_val < alpha) push_front_face(mesh, chunk_cor, texColor, alpha);
+    if (left_block_val  < alpha) push_left_face (mesh, chunk_cor, texColor, alpha);
+    if (right_block_val < alpha) push_right_face(mesh, chunk_cor, texColor, alpha);
 
     return false;
 }
@@ -184,15 +233,6 @@ void render_chunk(World* world, vec2_u64 chunk_cor) {
     chunk_updates[chunk_cor.x][chunk_cor.y] = false;
 }
 
-void test_fill_chunk(World* world, vec2_u64 chunk_cor) {
-    Chunk chunk = World::chunk_at_chunk_cor(world, chunk_cor);
-    
-    Chunk::iterate(chunk, [](Chunk chunk, vec3_u64 wpos) {
-        Block* b = World::block_at(chunk.world, wpos);
-        Block::set_value(b, 1);
-    });
-}
-
 /*
     attaches to main.cpp
 */
@@ -200,13 +240,7 @@ void test_fill_chunk(World* world, vec2_u64 chunk_cor) {
 void init_chunk_render() {
     world = World::alloc_chunks();
     render_terrain(&world);
-
-    for (U64 x = 0; x < World::chunk_width_x; x++) {
-        for (U64 y = 0; y < World::chunk_width_y; y++) {
-            render_chunk(&world, {x, y});
-        }
-    }
-
+    memset(chunk_updates, true, WORLD_W_C * WORLD_W_C);
 }
 
 void update_chunk_render(F64 dt) {
@@ -215,6 +249,7 @@ void update_chunk_render(F64 dt) {
 void draw_chunk_render() {
     for (U64 x = 0; x < World::chunk_width_x; x++) {
         for (U64 y = 0; y < World::chunk_width_y; y++) {
+            if (chunk_updates[x][y]) render_chunk(&world, {x, y});
             DrawModel(static_chunks[x][y], {(F32) x * Chunk::width_blocks_x, 
                                             0, 
                                             (F32) y * Chunk::width_blocks_z}, 

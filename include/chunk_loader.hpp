@@ -13,10 +13,10 @@ extern "C" {
 }
 
 #define CHUNK_W 16
-#define CHUNK_H 48
+#define CHUNK_H 64
 
  // width of world in chunks
-#define WORLD_W_C 8
+#define WORLD_W_C 3
 
 // world width in blocks
 #define WORLD_W_B WORLD_W_C * CHUNK_W
