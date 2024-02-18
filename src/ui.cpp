@@ -16,25 +16,27 @@ void create_button(int x, int y, int width, int height)
 	a.y = y;
 	a.width = width;
 	a.height = height;
-	a.block;
 	buttons.push_back(a);
 }
 
-void escape_menu()
-{
-
-}
-
-void create_ui(int screen_width, int screen_height)
+void create_ui()
 {
 	for (int i = 0; i < 9; i++)
 	{
-		create_button(screen_width/8+(i*((int)screen_width/12)), screen_height-(screen_width/12)-(screen_height/60), screen_width/12, screen_width/12);
+		create_button(0, 0, 0, 0);
 	}
 }
 
 void update_hotbar(int screen_width, int screen_height)
 {
+	for (int i = 0; i < 9; i++)
+	{
+		buttons[i].x = screen_width/8+(i*((int)screen_width/12));
+		buttons[i].y = screen_height-(screen_width/12)-(screen_height/60);
+		buttons[i].width = screen_width/12;
+		buttons[i].height = screen_width/12;
+	}
+
 	float mouseWheelMovement = GetMouseWheelMove();
 	if(mouseWheelMovement != 0)
 	{
@@ -61,16 +63,6 @@ void update_hotbar(int screen_width, int screen_height)
 		}
 	}
 
-}
-
-void draw_items(ItemBlock block)
-{
-	// Could iterate through each one to check for .block. 
-	// for (int i = 0; i < 9)
-	
-	// ADD STUFF HERE
-	DrawCube({0,0,0}, buttons[highlighted].width/1.2f, buttons[highlighted].width/1.2f, buttons[highlighted].width/1.2f, BLACK);
-	//buttons[highlighted].block = 
 }
 
 void draw_hotbar(int screen_width, int screen_height)

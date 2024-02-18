@@ -50,7 +50,7 @@ static void crafty_init() {
     create_light(LIGHT_POINT, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
     create_light(LIGHT_DIRECTIONAL, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
     // ------- Lighting ---------
-    create_ui(global_screen_width, global_screen_height);
+    create_ui();
     comic_mono_font = LoadFont("resources/ComicMono-Bold.ttf");
     init_chunk_render();
 }
