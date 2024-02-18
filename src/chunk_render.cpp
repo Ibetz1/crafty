@@ -180,9 +180,7 @@ void render_chunk(World* world, vec2_u64 chunk_cor) {
     }
 
     UploadMesh(&mesh, false);
-    Model chunkModel = LoadModelFromMesh(mesh);
-    
-    static_chunks[chunk_cor.x][chunk_cor.y] = model;
+    static_chunks[chunk_cor.x][chunk_cor.y] = LoadModelFromMesh(mesh);
     chunk_updates[chunk_cor.x][chunk_cor.y] = false;
 }
 
