@@ -44,7 +44,6 @@ static void init() {
     create_light(LIGHT_POINT, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
     create_light(LIGHT_DIRECTIONAL, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
     // ------- Lighting ---------
-    handle_noise();
     init_chunk_render();
 }
 
@@ -92,9 +91,12 @@ int main(void) {
     while (!WindowShouldClose()) {
         update(GetFrameTime());
 
+        BeginDrawing();
+        ClearBackground(BLACK);
+        DrawFPS(0, 0);
+
         BeginMode3D(global_camera);
 
-        ClearBackground(BLACK);
 
         draw();
 

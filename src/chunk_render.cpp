@@ -3,6 +3,7 @@
 #include "raymath.h"
 #include "cvec3.hpp"
 #include "cube_render.hpp"
+#include "stb_perlin.h"
 
 static const vec3_s64 x_culling_offset = {1, 0, 0};
 static const vec3_s64 y_culling_offset = {0, 1, 0};
@@ -10,6 +11,26 @@ static const vec3_s64 z_culling_offset = {0, 0, 1};
 
 static World world;
 
+void fill_world_col(World* world, U64 x, U64 z, U64 h) {
+    for (U64 y = 0; y < h; y++) {
+        Block* b = World::block_at(world, {x, y, z});
+        Block::set_value(b, 1);
+    }
+}
+
+void render_terrain(World* world) {
+    for (U64 x = 0; x < World::block_width_x; x++) {
+        for (U64 y = 0; y < World::block_width_z; y++) {
+            F32 nx = (F32) x / World::block_width_x;
+            F32 ny = (F32) y / World::block_width_z;
+
+            F32 hnorm = stb_perlin_noise3(nx, nx, 1.0, 0, 0, 0) * 0.5 + 0.5;
+            U64 height = (U64) (hnorm * World::block_width_y);
+
+            fill_world_col(world, x, y, height);
+        }
+    }
+}
 
 static Model static_chunks[WORLD_W_C][WORLD_W_C] = { 0 };
 static bool chunk_updates[WORLD_W_C][WORLD_W_C] = { 1 };
@@ -153,10 +174,7 @@ void test_fill_chunk(World* world, vec2_u64 chunk_cor) {
 
 void init_chunk_render() {
     world = World::alloc_chunks();
-    test_fill_chunk(&world, {0, 0});
-    test_fill_chunk(&world, {1, 0});
-    test_fill_chunk(&world, {1, 1});
-    test_fill_chunk(&world, {0, 1});
+    render_terrain(&world);
 
     for (U64 x = 0; x < World::chunk_width_x; x++) {
         for (U64 y = 0; y < World::chunk_width_y; y++) {
