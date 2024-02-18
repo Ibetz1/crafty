@@ -9,7 +9,7 @@
 // barg8397@vandals.uidaho.edu
 //
 
-internal void* arena_push(Arena* a, U64 size) {
+static void* arena_push(Arena* a, U64 size) {
   void* result;
 
   U64 aligned_size = AlignPow2(size, 8);
@@ -26,7 +26,7 @@ internal void* arena_push(Arena* a, U64 size) {
   return result; 
 }
 
-internal Arena* arena_alloc_sized(U64 size) {
+static Arena* arena_alloc_sized(U64 size) {
   U64 aligned_size = AlignPow2(size + sizeof(Arena), 8);
   void* memory = malloc(aligned_size);
 
@@ -39,22 +39,22 @@ internal Arena* arena_alloc_sized(U64 size) {
   return arena;
 }
 
-internal Arena* arena_alloc() {
+static Arena* arena_alloc() {
   return arena_alloc_sized(KB(5));
 };
 
-internal void arena_release(Arena *arena) {
+static void arena_release(Arena *arena) {
   free(arena->base_ptr);
 }
 
-internal Temp scratch_begin(Arena* arena) {
+static Temp scratch_begin(Arena* arena) {
   Temp result;
   result.arena = arena;
   result.offset = arena->offset;
   return result;
 }
 
-internal void scratch_end(Temp temp) {
+static void scratch_end(Temp temp) {
   temp.arena->offset = temp.offset;
 }
 
