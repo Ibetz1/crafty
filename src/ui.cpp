@@ -65,8 +65,12 @@ void update_hotbar(int screen_width, int screen_height)
 
 void draw_items(ItemBlock block)
 {
+	// Could iterate through each one to check for .block. 
+	// for (int i = 0; i < 9)
+	
 	// ADD STUFF HERE
 	DrawCube({0,0,0}, buttons[highlighted].width/1.2f, buttons[highlighted].width/1.2f, buttons[highlighted].width/1.2f, BLACK);
+	//buttons[highlighted].block = 
 }
 
 void draw_hotbar(int screen_width, int screen_height)
