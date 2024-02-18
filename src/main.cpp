@@ -1,17 +1,19 @@
+#include "base_inc.h"
 #include "raylib.h"
 #include "raymath.h"
+
 #include "shaders.h"
 #include "chunks.hpp"
 
 extern "C" {
     #include "base_inc.h"
-    #include "base_inc.c"
 }
 
+//#include "shaders.cpp"
 
-#define CAMERA_MOUSE_MOVE_SENSITIVITY 0.03f
-#define CAMERA_MOVE_SPEED             0.09f
-#define CAMERA_ROTATION_SPEED         0.03f
+#define CAMERA_MOUSE_MOVE_SENSITIVITY                   0.03f     
+#define CAMERA_MOVE_SPEED                               0.09f
+#define CAMERA_ROTATION_SPEED                           0.03f
 
 global World global_world;
 
@@ -22,8 +24,11 @@ global Material global_DEBUG_block_material;
 global Model global_DEBUG_block_model;
 
 global Model church;
+global Model cube;
+global Model plane;
 global Texture2D churchTexture;
 global RenderTexture2D target;
+
 
 const int screen_width = 800;
 const int screen_height = 450;
@@ -34,13 +39,24 @@ internal void init() {
     InitWindow(screen_width, screen_height, "AlgoCraft3D");
     SetTargetFPS(60);
     DisableCursor(); // NOTE(cabarger): Also locks the cursor.
-    InitShaders();
+    init_shaders();
+
     
-    // Test church model
+    // Target for rendering in shader mode
     target = LoadRenderTexture(screen_width, screen_height);
+    // Create light source
+    // v3 position, v3 target, color
+    init_light((Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
+
+    plane = LoadModelFromMesh(GenMeshPlane(10.0f, 10.0f, 3, 3));
+    //cube = LoadModelFromMesh(GenMeshCube(2.0f, 4.0f, 2.0f));
+    plane.materials[0].shader = get_lighting_shader();
+    //cube.materials[0].shader = get_lighting_shader();
+
     church = LoadModel("./resources/church.obj");                 // Load OBJ model
     churchTexture = LoadTexture("./resources/church_diffuse.png"); // Load model texture (diffuse map)
     church.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = churchTexture;        // Set model diffuse texture
+    //
 
     global_DEBUG_block_mesh = GenMeshCube(1.0f, 1.0f, 1.0f);                            
     global_DEBUG_block_material = LoadMaterialDefault();
@@ -63,10 +79,10 @@ internal void init() {
     for (U8 block_x=0; block_x < CHUNK_W; ++block_x) {
         for (U8 block_y=0; block_y < CHUNK_W; ++block_y) {
             for (U8 block_z=0; block_z < CHUNK_H; ++block_z) {
-                if (block_z == 10 || block_z == 11 || block_z == 12) {
-                    // Block* block_p = 
-                        // Chunk::block_at(&chunk, block_x, block_y, block_z);
-                    // Block::set_value(block_p, 1);
+                if (block_z == 10) {
+                    Block* block_p = 
+                        Chunk::block_at(&chunk, block_x, block_y, block_z);
+                    Block::set_value(block_p, 1);
                 }
             }
         }
@@ -93,38 +109,52 @@ internal void update(F32 dt) {
     if (IsKeyDown(KEY_LEFT_CONTROL)) movement_this_frame.z += -CAMERA_MOVE_SPEED; // Down 
    
     UpdateCameraPro(&global_camera,  movement_this_frame, rotation_this_frame, 0.0f);
-    UpdateShader();
+    float cameraPos[3] = { global_camera.position.x, global_camera.position.y, global_camera.position.z };
+    update_shaders(cameraPos);
 
 }
 
-#define SAM_DRAW 0
+#define SAM_DRAW 1
 #if SAM_DRAW 
 internal void draw() {
     BeginTextureMode(target);  
-    ClearBackground(RAYWHITE);
+    ClearBackground(BLACK);
 
     BeginMode3D(global_camera);
 
+    draw_lights();
     // Church
+    // DrawModel(
+    //     global_DEBUG_block_model, 
+    //     (Vector3){.x = 0.0f, .y = 0.0f, .z = 0.0f},  // Pos
+    //     1.0f, // Scale
+    //     BLUE // Tint
+    // ); 
+    DrawModel(plane, { 0.0f, 0.0f, 0.0f }, 1.0f, WHITE);   // Draw 3d model with texture
+    //DrawModel(cube, { 0.0f, 0.0f, 0.0f }, 1.0f, WHITE);   // Draw 3d model with texture
     DrawModel(church, { 0.0f, 0.0f, 0.0f }, 0.1f, WHITE);   // Draw 3d model with texture
+
+    //DrawModel(church, { 2.2f, 4.0f, 0.0f }, 1.0f, WHITE);   // Draw 3d model with texture
+
     DrawGrid(10, 1.0f); 
 
     EndMode3D();
     EndTextureMode();
 
     BeginDrawing();
-    ClearBackground(RAYWHITE);
+    ClearBackground(BLACK);
 
-    BeginShaders();
+    begin_shaders();
+        //DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2){ 5, 5 }, WHITE);
         DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2){ 0, 0 }, WHITE);
-    EndShaders();
+    end_shaders();
 
-    // DRAW TEXT over 2d shapes and drawn texture
+    // DRAW TEXT over 2d planes and drawn texture
     DrawRectangle(0, 9, 580, 30, Fade(LIGHTGRAY, 0.7f));
     
     DrawText("(c) Church 3D model by Alberto Cano", screen_width - 200, screen_height - 20, 10, GRAY);
     DrawText("CURRENT POSTPRO SHADER:", 10, 15, 20, BLACK);
-    DrawText(postproShaderText[getCurrentShader()], 330, 15, 20, RED);
+    DrawText(postproShaderText[get_shader_index()], 330, 15, 20, RED);
     DrawText("< >", 540, 10, 30, DARKBLUE);
     
     EndDrawing();
@@ -134,6 +164,7 @@ internal void draw() {
 #endif
 
 int main(void) {
+    
     init();
     while (!WindowShouldClose()) {
         update(GetFrameTime());
@@ -142,7 +173,7 @@ int main(void) {
     UnloadTexture(churchTexture);        
     UnloadModel(church);             
     UnloadRenderTexture(target);    
-    DeloadShaders();
+    deload_shaders();
     CloseWindow();
 
     return 0;
