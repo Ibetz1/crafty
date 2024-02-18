@@ -1,17 +1,13 @@
 #include "base_inc.h"
 #include "raylib.h"
 #include "raymath.h"
-
 #include "ui.hpp"
 #include "shaders.hpp"
 #include "chunk_render.hpp"
 #include "chunk_loader.hpp"
-
-extern "C" {
-    #include "base_inc.c"
-}
 #include "cube_render.hpp"
 
+#include "base_inc.c"
 
 enum GameState 
 {
@@ -19,24 +15,23 @@ enum GameState
     GAME_PAUSED,
 };
 
-#define CAMERA_MOUSE_MOVE_SENSITIVITY 0.03f     
-#define CAMERA_MOVE_SPEED             0.09f
-#define CAMERA_ROTATION_SPEED         0.03f
-
 static World global_world;
-
 static Camera global_camera = { 0 };
 
-global GameState game_state;
+static GameState game_state;
 global Font my_font;
 
-const int screen_width = 800;
-const int screen_height = 450;
+static S32 global_screen_width = 800;
+static S32 global_screen_height = 450;
 
-/*
-    on runtime
-*/
-static void init() {
+S32 game_paused = 0;
+
+static void crafty_init() {
+    //- NOTE(cabarger): Raylib boilerplate
+    InitWindow(global_screen_width, global_screen_height, "Crafty3D");
+    SetWindowState(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_TOPMOST);
+    SetTargetFPS(60);
+    DisableCursor(); // NOTE(cabarger): Also locks the cursor
     
     //- NOTE(cabarger): camera default values...
     global_camera.position = (Vector3){ 0.2f, 0.4f, 0.2f }; 
@@ -46,7 +41,7 @@ static void init() {
     global_camera.projection = CAMERA_PERSPECTIVE;          // Projection type
 
     /*
-        our shit down here
+        our stuff down here
     */
     game_state = GAME_RUNNING;
     // ------- Lighting --------
@@ -54,12 +49,24 @@ static void init() {
     create_light(LIGHT_POINT, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
     create_light(LIGHT_DIRECTIONAL, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW);
     // ------- Lighting ---------
-    create_ui(screen_width, screen_height);
+    create_ui(global_screen_width, global_screen_height);
     my_font = LoadFont("resources/ComicMono-Bold.ttf");
     init_chunk_render();
 }
 
+static void handle_window_resize() {
+    if (IsWindowResized()) {
+        global_screen_width = GetScreenWidth();
+        global_screen_height = GetScreenHeight();
+    }
+}
+
 static void update_camera_and_movement() {
+
+#define CAMERA_MOUSE_MOVE_SENSITIVITY 0.03f     
+#define CAMERA_MOVE_SPEED             0.09f
+#define CAMERA_ROTATION_SPEED         0.03f
+   
     Vector2 mouse_pos_delta = GetMouseDelta();
     Vector3 movement_this_frame = Vector3Zero();
     Vector3 rotation_this_frame = Vector3{
@@ -78,11 +85,10 @@ static void update_camera_and_movement() {
     UpdateCameraPro(&global_camera,  movement_this_frame, rotation_this_frame, 0.0f);
 }
 
-
 /*
     pre-render pass
 */
-static void update(F32 dt) {
+static void crafty_update(F32 dt) {
     if(IsKeyPressed(KEY_P)) 
     {
         if (game_state == GAME_RUNNING)
@@ -98,10 +104,11 @@ static void update(F32 dt) {
     switch(game_state) {
         case GAME_RUNNING:
         {
+            handle_window_resize();
             update_camera_and_movement();
             update_chunk_render(dt);
             update_shaders(&global_camera);
-            update_hotbar(screen_width, screen_height);
+            update_hotbar(global_screen_width, global_screen_height);
             break;
         }
         case GAME_PAUSED:
@@ -111,7 +118,7 @@ static void update(F32 dt) {
     }
 }
 
-static void draw() {
+static void crafty_draw() {
     BeginDrawing();
     switch(game_state)
     {
@@ -125,13 +132,13 @@ static void draw() {
             draw_chunk_render();
                     EndMode3D();
             DrawFPS(0, 0);
-            draw_hotbar(screen_width, screen_height);
+            draw_hotbar(global_screen_width, global_screen_height);
             break;
         }
         case GAME_PAUSED:
         {
             char * exit_str = "Press 1 to exit, 2 to leave";
-            Vector2 vec = {screen_width/2.0f - MeasureText(exit_str, 30)/2.0f, screen_height/2.0f};
+            Vector2 vec = {global_screen_width/2.0f - MeasureText(exit_str, 30)/2.0f, global_screen_height/2.0f};
 
             DrawTextEx(my_font, exit_str, vec, 30, 1, RED);
             if (IsKeyPressed(KEY_ONE))
@@ -149,17 +156,11 @@ static void draw() {
 }
 
 int main(void) {
-    InitWindow(screen_width, screen_height, "AlgoCraft3D");
-    SetTargetFPS(60);
-    DisableCursor(); // NOTE(cabarger): Also locks the cursor
-
-    init();
+    crafty_init();
     while (!WindowShouldClose()) {
-        update(GetFrameTime());
-        draw();
-
+        crafty_update(GetFrameTime());
+        crafty_draw();
     }
-    deload_shaders();
     CloseWindow();
 
     return 0;
