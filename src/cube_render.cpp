@@ -19,7 +19,7 @@ static void push_mat_3_buffer(float** buf, U64 buf_len, float matrix[3][3]) {
 
     free(old_buf);
 
-    memcpy(new_buf + buf_len, matrix, 9);
+    memcpy(new_buf + buf_len, matrix, 9 * sizeof(float));
     *buf = new_buf;
 }
 
