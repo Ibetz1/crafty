@@ -57,13 +57,18 @@ void fill_world_col(World* world, U64 x, U64 z, U64 h) {
     }
 }
 
+static const int octaves = 6;
+static const float lacunarity = 2.0f;
+static const float gain = 0.1f;
+static const float offset = 1.0f;
+
 void render_terrain(World* world) {
     for (U64 x = 0; x < World::block_width_x; x++) {
         for (U64 y = 0; y < World::block_width_z; y++) {
             F32 nx = (F32) x / World::block_width_x;
             F32 ny = (F32) y / World::block_width_z;
 
-            F32 hnorm = stb_perlin_noise3_seed(nx, nx, 0.0, 0, 0, 0, 1) * 0.5 + 0.5;
+            F32 hnorm = stb_perlin_ridge_noise3(nx, ny, 0.0f, lacunarity, gain,offset, octaves);
             U64 height = (U64) (hnorm * World::block_width_y);
             fill_world_col(world, x, y, height);
         }

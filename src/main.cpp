@@ -3,7 +3,6 @@
 #include "raymath.h"
 
 #include "ui.hpp"
-#include "perlin.hpp"
 #include "shaders.hpp"
 #include "chunk_render.hpp"
 #include "chunk_loader.hpp"
