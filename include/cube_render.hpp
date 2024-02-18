@@ -101,9 +101,9 @@ static float RightFaceSeg2[3][3] = {
 };
 
 static float ZeroNormalSeg[3][3] = {
-    {0, 1, 0},
-    {0, 1, 0},
-    {0, 1, 0},
+    {0, 0, 0},
+    {0, 0, 0},
+    {0, 0, 0},
 };
 
 // cube building functions
